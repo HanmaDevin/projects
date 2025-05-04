@@ -32,8 +32,8 @@ func main() {
 	if !exists(filename) {
 		_, err := os.Create(filename)
 		check(err)
+		os.WriteFile(filename, []byte(header), 0644)
 	}
-	os.WriteFile(filename, []byte(header), 0644)
 
 	tasks.Execute()
 }

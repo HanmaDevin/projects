@@ -7,10 +7,9 @@ import (
 )
 
 var addCmd = &cobra.Command{
-	Use:     "add <description>",
-	Aliases: []string{"a"},
-	Short:   "Add a task with a description",
-	Args:    cobra.ExactArgs(1),
+	Use:   "add <description>",
+	Short: "Add a task with a description",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		tasks.AddTask(args[0])
 	},
