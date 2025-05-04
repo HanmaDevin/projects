@@ -1,11 +1,64 @@
 package tasks
 
-func add_task(desc string) {}
+import (
+	"encoding/csv"
+	"fmt"
+	"os"
+	"strconv"
 
-func delete_task(id int) {}
+	"github.com/mergestat/timediff"
+)
 
-func print_tasks() {}
+// global variables
+var (
+	err      error
+	homeDir  string
+	filename string
+)
 
-func print_all_tasks() {}
+// init function to set global veriables
+func init() {
+	homeDir, err = os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
 
-func mark_task_done(id int) {}
+	filename = homeDir + "\\.go_data\\tasks.csv"
+}
+
+func AddTask(desc string) {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	csvWriter := csv.NewWriter(file)
+
+	fileInfo, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		fmt.Fscanf(os.Stderr, "File: %s does not exist!!!", filename)
+	} else if err != nil {
+		panic(err)
+	}
+
+	CreatedAt := fileInfo.ModTime()
+	diff := timediff.TimeDiff(CreatedAt)
+	done := false
+
+	content, _ := csv.NewReader(file).ReadAll()
+	id := len(content)
+
+	data := []string{strconv.Itoa(id), desc, diff, strconv.FormatBool(done)}
+
+	csvWriter.Write(data)
+	csvWriter.Flush()
+}
+
+func DeleteTask(id int) {}
+
+func PrintTasks() {}
+
+func PrintAllTasks() {}
+
+func MarkTaskDone(id int) {}

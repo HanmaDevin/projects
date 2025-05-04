@@ -22,16 +22,18 @@ func main() {
 
 	dir := homeDir + "\\.go_data"
 	filename := homeDir + "\\.go_data\\tasks.csv"
-	header := "ID,Description,CreatedAt,IsComplete"
+	header := "ID,Description,CreatedAt,IsComplete\n"
 
 	if !exists(dir) {
 		err := os.Mkdir(dir, 0755)
 		check(err)
-		os.WriteFile(filename, []byte(header), 0644)
-	} else if !exists(filename) {
+	}
+
+	if !exists(filename) {
 		_, err := os.Create(filename)
 		check(err)
 	}
+	os.WriteFile(filename, []byte(header), 0644)
 
 	tasks.Execute()
 }
