@@ -2,6 +2,7 @@ package main
 
 import (
 	"Go_Projects/todo_list/cmd/tasks"
+	"fmt"
 	"os"
 )
 
@@ -17,6 +18,10 @@ func check(err error) {
 }
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "No arguments found!\nStart off with task --help")
+	}
+
 	homeDir, err := os.UserHomeDir()
 	check(err)
 
