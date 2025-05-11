@@ -19,14 +19,14 @@ func check(err error) {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "No arguments found!\nStart off with task --help")
+		fmt.Fprintf(os.Stderr, "No arguments found!\nStart off with tasks --help")
 	}
 
 	homeDir, err := os.UserHomeDir()
 	check(err)
 
-	dir := homeDir + "\\.go_data"
-	filename := homeDir + "\\.go_data\\tasks.csv"
+	dir := homeDir + "/.go_data/"
+	filename := dir + "tasks.csv"
 	header := "ID,Description,CreatedAt,IsComplete\n"
 
 	if !exists(dir) {
