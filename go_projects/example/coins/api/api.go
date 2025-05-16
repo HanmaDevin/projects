@@ -21,7 +21,7 @@ type Error struct {
 
 func writeError(w http.ResponseWriter, message string, code int) {
 	resp := Error{
-		Code: code,
+		Code:    code,
 		Message: message,
 	}
 
@@ -36,5 +36,7 @@ var (
 		writeError(w, err.Error(), http.StatusBadRequest)
 	}
 
-	InternalErrorHandler
+	InternalErrorHandler = func(w http.ResponseWriter) {
+		writeError(w, "An Unexpected Error Occured.", http.StatusInternalServerError)
+	}
 )

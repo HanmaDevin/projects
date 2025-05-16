@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/HanmaDevin/example_coins/internal/handlers"
+	"github.com/HanmaDevin/example_coins/internal/handler"
 	"github.com/go-chi/chi"
 	log "github.com/sirupsen/logrus"
 )
@@ -22,9 +22,10 @@ func print_banner(filename string) {
 func main() {
 	log.SetReportCaller(true)
 	var router *chi.Mux = chi.NewRouter()
-	handlers.Handler(router)
+	handler.Handler(router)
 
 	fmt.Println("Starting GO API service...")
+	fmt.Println("Listening on port 8080")
 	print_banner("./banner.txt")
 
 	err := http.ListenAndServe("localhost:8080", router)
