@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/HanmaDevin/calculator/database"
 	"github.com/HanmaDevin/calculator/types"
 )
 
@@ -72,11 +73,14 @@ func add(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	database.DB.Create(&obj)
+
 	var res types.Result
 	res.Res = obj.Add()
 	res.Desc = "Successfully added two numbers"
 	log.Info(res.Desc)
 	json.NewEncoder(w).Encode(res)
+	database.DB.Create(&res)
 }
 
 func divide(w http.ResponseWriter, r *http.Request) {
@@ -132,6 +136,8 @@ func divide(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	database.DB.Create(&obj)
+
 	var res types.Result
 	res.Res, err = obj.Divide()
 	if err != nil {
@@ -141,6 +147,7 @@ func divide(w http.ResponseWriter, r *http.Request) {
 	}
 	res.Desc = "Successfully divided two numbers"
 	log.Info(res.Desc)
+	database.DB.Create(&res)
 	json.NewEncoder(w).Encode(res)
 }
 
@@ -196,10 +203,13 @@ func subtract(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	database.DB.Create(&obj)
+
 	var res types.Result
 	res.Res = obj.Subtract()
 	res.Desc = "Successfully subtracted two numbers"
 	log.Info(res.Desc)
+	database.DB.Create(&res)
 	json.NewEncoder(w).Encode(res)
 }
 

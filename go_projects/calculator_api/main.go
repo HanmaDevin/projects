@@ -10,6 +10,7 @@ import (
 
 	"github.com/HanmaDevin/calculator/api"
 	"github.com/HanmaDevin/calculator/database"
+	"github.com/HanmaDevin/calculator/types"
 )
 
 var log = slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -22,6 +23,9 @@ func main() {
 	flag.Parse()
 
 	database.StartDbConnection()
+
+	database.DB.AutoMigrate(types.Object{})
+	database.DB.AutoMigrate(types.Result{})
 
 	fmt.Printf("Starting Server at localhost:%v\n", *port)
 

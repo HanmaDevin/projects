@@ -10,20 +10,20 @@ import (
 )
 
 var log = slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-// func start() {
-// 	cmd := exec.Command("docker-compose", "up", "-d")
-// 	output := cmd.Stdout
-// 	fmt.Println(output)
-// }
+var DB *gorm.DB
 
 func StartDbConnection() {
-	//start()
-
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
 
 	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=calculatorDB port=5432 sslmode=disable", user, password)
 
-	gorm.Open(postgres.Open(dsn))
+	log.Info("connecting to database...")
+
+	var err error
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Error(err.Error())
+	}
+
 }

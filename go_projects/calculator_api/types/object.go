@@ -2,16 +2,22 @@ package types
 
 import (
 	"errors"
+
+	"gorm.io/gorm"
 )
 
 type Object struct {
-	Number1 *float64 `json:"number1"`
-	Number2 *float64 `json:"number2"`
+	gorm.Model
+
+	Number1 *float64 `gorm:"not null" json:"number1"`
+	Number2 *float64 `gorm:"not null" json:"number2"`
 }
 
 type Result struct {
-	Res  float64 `json:"result"`
-	Desc string  `json:"description"`
+	gorm.Model
+
+	Res  float64 `gorm:"not null" json:"result"`
+	Desc string  `gorm:"not null" json:"description"`
 }
 
 func (o *Object) Add() float64 {
