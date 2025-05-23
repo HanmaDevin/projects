@@ -47,6 +47,7 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
+	router.HandleFunc("/login", makeHTTPHandleFunc(s.handleLogin)).Methods("POST")
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
 	router.HandleFunc("/account/{id}", withJWTAuth(makeHTTPHandleFunc(s.handleAccountByID), s.store))
 	router.HandleFunc("/transfer", makeHTTPHandleFunc(s.handleTransferMoney)).Methods("POST")
@@ -54,6 +55,22 @@ func (s *APIServer) Run() {
 	log.Println("JSON API running on port", s.listenAddr)
 
 	http.ListenAndServe(s.listenAddr, router)
+}
+
+func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
+	var req loginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	acc, err := s.store.GetAccountByBankNumber(int(req.Number))
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%+v\n", acc)
+
+	return WriteJSON(w, http.StatusOK, req)
 }
 
 func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error {
@@ -105,13 +122,11 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
-	account := NewAccount(accReq.FirstName, accReq.LastName)
-	if err := s.store.CreateAccount(account); err != nil {
+	account, err := NewAccount(accReq.FirstName, accReq.LastName, accReq.Password)
+	if err != nil {
 		return err
 	}
-
-	tokenStr, err := createJWT(account)
-	if err != nil {
+	if err := s.store.CreateAccount(account); err != nil {
 		return err
 	}
 
