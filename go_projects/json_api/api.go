@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 )
 
@@ -46,7 +48,7 @@ func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
-	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleAccountByID))
+	router.HandleFunc("/account/{id}", withJWTAuth(makeHTTPHandleFunc(s.handleAccountByID), s.store))
 	router.HandleFunc("/transfer", makeHTTPHandleFunc(s.handleTransferMoney)).Methods("POST")
 
 	log.Println("JSON API running on port", s.listenAddr)
@@ -108,7 +110,24 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
+	tokenStr, err := createJWT(account)
+	if err != nil {
+		return err
+	}
+
 	return WriteJSON(w, http.StatusOK, account)
+}
+
+func createJWT(account *Account) (string, error) {
+	claims := &jwt.MapClaims{
+		"expires_at":     15000,
+		"account_number": account.BankNumber,
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(secret))
 }
 
 func (s *APIServer) handleDeleteAccountByID(w http.ResponseWriter, r *http.Request, id int) error {
@@ -116,6 +135,57 @@ func (s *APIServer) handleDeleteAccountByID(w http.ResponseWriter, r *http.Reque
 		return err
 	}
 	return WriteJSON(w, http.StatusOK, map[string]int{"deleted": id})
+}
+
+func permissionDenied(w http.ResponseWriter) {
+	WriteJSON(w, http.StatusForbidden, APIError{Error: "permission denied"})
+}
+
+func withJWTAuth(handlerFunc http.HandlerFunc, s Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println("calling JWT auth middleware")
+
+		tokenStr := r.Header.Get("jwt-token")
+
+		token, err := validateJWT(tokenStr)
+		if err != nil {
+			permissionDenied(w)
+			return
+		}
+		if !token.Valid {
+			permissionDenied(w)
+			return
+		}
+		userID, err := getID(r)
+		if err != nil {
+			permissionDenied(w)
+			return
+		}
+		account, err := s.GetAccountByID(userID)
+		if err != nil {
+			permissionDenied(w)
+			return
+		}
+
+		claims := token.Claims.(jwt.MapClaims)
+		if account.BankNumber != int64(claims["account_number"].(float64)) {
+			permissionDenied(w)
+			return
+		}
+
+		handlerFunc(w, r)
+	}
+}
+
+func validateJWT(tokenStr string) (*jwt.Token, error) {
+	secret := os.Getenv("JWT_SECRET")
+	return jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(secret), nil
+	})
 }
 
 func (s *APIServer) handleTransferMoney(w http.ResponseWriter, r *http.Request) error {
