@@ -99,10 +99,10 @@ func getTemperature(city string) (*WeatherData, error) {
 func displayHelp() {
 	fmt.Println("Usage: weatherInfo [Options]")
 	fmt.Println("Options:")
-	fmt.Println("  -city    Name of the city of which to get weather information (required).")
-	fmt.Println("  -env     Path to the .env file (optional, defaults to ~/.env).")
-	fmt.Println("           Make sure it contains WEATHER_API=<your_api_key>")
-	fmt.Println("  -help    Display this help message.")
+	fmt.Println("  -city <NAME> \t Name of the city of which to get weather information (required).")
+	fmt.Println("  -env  <PATH> \t Path to the .env file (optional, defaults to ~/.env).")
+	fmt.Println("\t\t Make sure it contains WEATHER_API=<your_api_key>")
+	fmt.Println("  -help \t Display this help message.")
 	os.Exit(0)
 }
 
