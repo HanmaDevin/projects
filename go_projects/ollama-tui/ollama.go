@@ -3,9 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"time"
 
 	"golang.org/x/net/html"
@@ -53,6 +56,23 @@ func (o *OllamaModel) setPrompt(prompt string) {
 
 func (o *OllamaModel) setModel(model string) {
 	o.Model = model
+}
+
+func pullModel(model string) {
+	cmd := exec.Command("ollama", "pull", model)
+	fmt.Println("Pulling manifest...")
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("<-!-- Could not pull model: %s --->\n", model)
+	}
+	fmt.Println("Finished!")
+}
+
+func listLocalModels() {
+	cmd := exec.Command("ollama", "list")
+	cmd.Stdout = os.Stdout
+	if err := cmd.Run(); err != nil {
+		log.Fatal("<-!-- Could not run 'ollama list' --->\n")
+	}
 }
 
 func listModels() []string {
