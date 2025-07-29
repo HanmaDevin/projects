@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/glamour"
 	"golang.org/x/net/html"
 )
 
@@ -31,30 +33,43 @@ func NewOllamaModel() *OllamaModel {
 	return &OllamaModel{}
 }
 
-func GetResponse(ollama *OllamaModel) string {
+func GetResponse(ollama *OllamaModel) (string, error) {
 	body := new(bytes.Buffer)
-	json.NewEncoder(body).Encode(ollama)
-
-	c := http.Client{Timeout: time.Minute * 3}
-
-	resp, err := c.Post(ollama_api, "application/json", body)
-	if err != nil {
-		log.Fatal("<-!-- Post request to ollama api failed --->\n")
+	if err := json.NewEncoder(body).Encode(ollama); err != nil {
+		return "", fmt.Errorf("failed to encode request: %w", err)
 	}
 
+	c := http.Client{Timeout: time.Minute * 3}
+	resp, err := c.Post(ollama_api, "application/json", body)
+	if err != nil {
+		return "", fmt.Errorf("post request to ollama api failed: %w", err)
+	}
 	defer resp.Body.Close()
-	var ai Response
-	json.NewDecoder(resp.Body).Decode(&ai)
 
-	return clean(ai.Resp)
+	if resp.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("ollama api returned status %d: %s", resp.StatusCode, string(b))
+	}
+
+	var ai Response
+	if err := json.NewDecoder(resp.Body).Decode(&ai); err != nil {
+		return "", fmt.Errorf("failed to decode response: %w", err)
+	}
+	if ai.Resp == "" {
+		return "", fmt.Errorf("ollama api returned empty response")
+	}
+
+	return clean(ai.Resp), nil
 }
 
 func PullModel(model string) error {
 	models := ListModels()
+	reg := regexp.MustCompile(`:\w+`)
+	modelname := reg.ReplaceAllString(model, "")
 	for _, m := range models {
-		if m.Name == model {
+		if m.Name == modelname {
 			cmd := exec.Command("ollama", "pull", model)
-			fmt.Println("Pulling manifest...")
+			fmt.Printf("Pulling %s...\n", model)
 			fmt.Println("Could take a while depending on the model size.")
 			if err := cmd.Run(); err != nil {
 				log.Fatalf("<-!-- Could not pull model: %s --->\n", model)
@@ -185,6 +200,46 @@ func ListModels() []ModelInfo {
 	return extractModels(doc)
 }
 
+func PrintMarkdown(md string) {
+	r, err := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(100),
+	)
+	if err != nil {
+		fmt.Fprintln(os.Stdout, md)
+		return
+	}
+	out, err := r.Render(md)
+	if err != nil {
+		fmt.Fprintln(os.Stdout, md)
+		return
+	}
+	fmt.Fprint(os.Stdout, out)
+}
+
 func clean(s string) string {
-	return s
+	re := regexp.MustCompile(`(?s)<think>.*?</think>`)
+	cleaned := re.ReplaceAllString(s, "")
+
+	// Basic HTML to Markdown replacements
+	replacements := []struct {
+		old string
+		new string
+	}{
+		{"<b>", "**"}, {"</b>", "**"},
+		{"<strong>", "**"}, {"</strong>", "**"},
+		{"<i>", "_"}, {"</i>", "_"},
+		{"<em>", "_"}, {"</em>", "_"},
+		{"<code>", "`"}, {"</code>", "`"},
+		{"<pre>", "```\n"}, {"</pre>", "\n```"},
+	}
+
+	for _, r := range replacements {
+		cleaned = strings.ReplaceAll(cleaned, r.old, r.new)
+	}
+
+	// Unescape HTML entities
+	cleaned = html.UnescapeString(cleaned)
+
+	return strings.TrimSpace(cleaned)
 }

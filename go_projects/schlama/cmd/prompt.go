@@ -26,7 +26,12 @@ var promptCmd = &cobra.Command{
 				return
 			}
 			body.Prompt = args[0]
-			fmt.Println(ollama.GetResponse(body))
+			resp, err := ollama.GetResponse(body)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			ollama.PrintMarkdown(resp)
 		}
 	},
 }

@@ -30,6 +30,9 @@ func ReadConfig() *ollama.OllamaModel {
 		return nil
 	}
 	err = yaml.Unmarshal(data, &cfg)
+	if cfg.Stream != false {
+		cfg.Stream = false
+	}
 
 	return parseConfig(cfg)
 }

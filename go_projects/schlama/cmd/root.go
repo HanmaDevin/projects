@@ -44,7 +44,7 @@ func init() {
 	if _, err := os.Stat(config_Path); os.IsNotExist(err) {
 		err := os.MkdirAll(config_Path, 0755)
 		if err != nil {
-			fmt.Println("Error creating config directory:", err)
+			fmt.Println("Error creating config directory:", err.Error())
 			os.Exit(-1)
 		}
 	}
