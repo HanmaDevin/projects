@@ -4,7 +4,7 @@ A better Ollama user interface - A simple and elegant CLI tool for interacting w
 
 ## Overview
 
-Schlama is a command-line interface that provides an easier way to chat with local language models through the Ollama API. It offers a streamlined experience for model management and interaction, making it simple to switch between models, send prompts, and manage your local AI setup.
+Schlama is a command-line interface that provides an easier way to chat with local large language models through the Ollama API. It offers a streamlined experience for model management and interaction, making it simple to switch between models, send prompts, and manage your local AI setup.
 
 ## Features
 
@@ -44,11 +44,7 @@ make build_win
 3. Install (optional):
 
 ```bash
-# For Unix/Linux/macOS
 make install
-
-# For Windows
-make install_win
 ```
 
 ### Pre-built Binaries

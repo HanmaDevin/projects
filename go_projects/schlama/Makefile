@@ -1,9 +1,6 @@
 install: build
 	@go install .
 
-install_win: build_win
-	@go install .
-
 run: build
 	@./bin/schlama
 
