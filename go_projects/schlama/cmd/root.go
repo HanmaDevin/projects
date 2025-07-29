@@ -1,5 +1,5 @@
 /*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+Copyright © 2025 Devin Brunk Cardosa
 */
 package cmd
 
@@ -17,8 +17,6 @@ var rootCmd = &cobra.Command{
 	Use:   "schlama",
 	Short: "A better ollama user interface.",
 	Long:  `Schlama is a cli or tui user interface, depending on what you perfer, which allows for easy communication with the local ollama api. Basically an easier way to chat with local model or install new ones. For more control over the models please use the ollama cli. This is just a simpler way to interact with the ollama api and having a bit of control over the models.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			cmd.Help()
@@ -36,9 +34,6 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
 	var home, _ = os.UserHomeDir()
 	var config_Path string = filepath.Dir(home + "/.config/schlama/")
 	if _, err := os.Stat(config_Path); os.IsNotExist(err) {
@@ -56,8 +51,4 @@ func init() {
 			Stream: false,
 		})
 	}
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
