@@ -1,8 +1,8 @@
 install: build
-	@go install github.com
+	@go install .
 
 install_win: build_win
-	@go install github.com
+	@go install .
 
 run: build
 	@./bin/schlama
