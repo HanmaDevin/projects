@@ -23,11 +23,11 @@ var selectCmd = &cobra.Command{
 		} else {
 			// Check if the model is present in the local models
 			if !ollama.IsModelPresent(args[0]) {
-				fmt.Println("Model not found locally. Pulling model...")
+				fmt.Println(styles.HintStyle("Model not found locally. Pulling model..."))
 				err := ollama.PullModel(args[0])
 				if err != nil {
-					fmt.Println(err)
-					fmt.Println("Here is a list of available models:")
+					fmt.Println(styles.ErrorStyle(err.Error()))
+					fmt.Println(styles.HintStyle("Here is a list of available models:"))
 					ollama.ListLocalModels()
 					return
 				}

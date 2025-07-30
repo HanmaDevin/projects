@@ -17,26 +17,26 @@ var (
 			Background(Surface0).
 			Foreground(Text).
 			Bold(true).
-			Padding(0, 1).Render
+			Padding(1, 1).Render
 
 	ErrorStyle = lipgloss.NewStyle().
 			Background(Surface0).
 			Foreground(Maroon).
 			Bold(true).
-			Padding(0, 1).Render
+			Padding(1, 1).Render
 
 	FinishedStyle = lipgloss.NewStyle().
 			Background(Surface0).
 			Foreground(Green).
 			Bold(true).
 			Italic(true).
-			Padding(0, 1).Render
+			Padding(1, 1).Render
 
 	HintStyle = lipgloss.NewStyle().
 			Foreground(Sky).
 			Background(Surface0).
 			Italic(true).
-			Padding(0, 1).Render
+			Padding(1, 1).Render
 
 	HeaderStyle = lipgloss.NewStyle().
 			Bold(true).
