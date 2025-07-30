@@ -3,8 +3,54 @@ package styles
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	OutputStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#7287fd")).Bold(true)
-	MsgStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("#04a5e5")).Faint(true)
-	ErrorStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#d20f39")).Bold(true)
-	HighlightStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#40a02b")).Bold(true).Italic(true)
+	// Catppuccin Mocha palette
+	Rosewater = lipgloss.Color("#f5e0dc")
+	Mauve     = lipgloss.Color("#cba6f7")
+	Text      = lipgloss.Color("#cdd6f4")
+	Surface0  = lipgloss.Color("#313244")
+	Surface1  = lipgloss.Color("#45475a")
+	Green     = lipgloss.Color("#a6e3a1")
+	Maroon    = lipgloss.Color("#f38ba8")
+	Sky       = lipgloss.Color("#89dceb")
+
+	OutputStyle = lipgloss.NewStyle().
+			Background(Surface0).
+			Foreground(Text).
+			Bold(true).
+			Padding(0, 1).Render
+
+	ErrorStyle = lipgloss.NewStyle().
+			Background(Surface0).
+			Foreground(Maroon).
+			Bold(true).
+			Padding(0, 1).Render
+
+	FinishedStyle = lipgloss.NewStyle().
+			Background(Surface0).
+			Foreground(Green).
+			Bold(true).
+			Italic(true).
+			Padding(0, 1).Render
+
+	HintStyle = lipgloss.NewStyle().
+			Foreground(Sky).
+			Background(Surface0).
+			Italic(true).
+			Padding(0, 1).Render
+
+	HeaderStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(Mauve).
+			Background(Surface1).
+			Padding(0, 1).Render
+
+	RowStyle = lipgloss.NewStyle().
+			Foreground(Text).
+			Background(Surface0).
+			Padding(0, 1).Render
+
+	TableBorder = lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder(), true).
+			BorderForeground(Rosewater).
+			Padding(0, 1).Render
 )

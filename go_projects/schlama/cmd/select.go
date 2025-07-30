@@ -8,6 +8,7 @@ import (
 
 	"github.com/HanmaDevin/schlama/config"
 	"github.com/HanmaDevin/schlama/ollama"
+	"github.com/HanmaDevin/schlama/styles"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +40,8 @@ var selectCmd = &cobra.Command{
 				Stream: body.Stream,
 			}
 			config.WriteConfig(cfg)
-			fmt.Println("Model set to:", args[0])
+			out := fmt.Sprintf("Current Model: %s", cfg.Model)
+			fmt.Println(styles.OutputStyle(out))
 		}
 	},
 }

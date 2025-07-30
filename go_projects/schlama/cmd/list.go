@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/HanmaDevin/schlama/ollama"
+	"github.com/HanmaDevin/schlama/styles"
 	"github.com/spf13/cobra"
 )
 
@@ -21,14 +22,20 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		models := ollama.ListModels()
 
-		fmt.Printf("%-25s %-20s\n", "MODEL NAME", "SIZES")
-		fmt.Printf("%-25s %-20s\n", strings.Repeat("-", 25), strings.Repeat("-", 20))
+		var rows []string
+		header := fmt.Sprintf("%-25s %-40s", "MODEL NAME", "SIZES")
+		rows = append(rows, styles.HeaderStyle(header))
+		divider := fmt.Sprintf("%-25s %-40s", strings.Repeat("-", 25), strings.Repeat("-", 40))
+		rows = append(rows, styles.RowStyle(divider))
 		for i, model := range models {
 			if i >= int(limit) {
 				break
 			}
-			fmt.Printf("%-25s %-20s\n", model.Name, strings.Join(model.Sizes, ", "))
+			line := fmt.Sprintf("%-25s %-40s", model.Name, strings.Join(model.Sizes, ", "))
+			rows = append(rows, styles.RowStyle(line))
 		}
+		table := styles.TableBorder(strings.Join(rows, "\n"))
+		fmt.Println(table)
 	},
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/HanmaDevin/schlama/config"
 	"github.com/HanmaDevin/schlama/ollama"
+	"github.com/HanmaDevin/schlama/styles"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +23,7 @@ var promptCmd = &cobra.Command{
 		} else {
 			body := config.ReadConfig()
 			if body.Model == "" {
-				fmt.Println("No model specified in config. Please set a model using 'schlama select <model_name>'.")
+				fmt.Println(styles.HintStyle("No model specified in config. Please set a model using 'schlama select <model_name>'."))
 				return
 			}
 			body.Prompt = args[0]

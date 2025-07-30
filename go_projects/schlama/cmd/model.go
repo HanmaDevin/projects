@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/HanmaDevin/schlama/config"
+	"github.com/HanmaDevin/schlama/styles"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +18,8 @@ var modelCmd = &cobra.Command{
 	Long:  `Show the current selected model.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		body := config.ReadConfig()
-		fmt.Println("Current model:", body.Model)
+		out := fmt.Sprintf("Current Model: %s", body.Model)
+		fmt.Println(styles.OutputStyle(out))
 	},
 }
 

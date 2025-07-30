@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/HanmaDevin/schlama/styles"
 	"github.com/charmbracelet/glamour"
 	"golang.org/x/net/html"
 )
@@ -36,7 +37,7 @@ func NewOllamaModel() *OllamaModel {
 func GetResponse(ollama *OllamaModel) (string, error) {
 	body := new(bytes.Buffer)
 	if err := json.NewEncoder(body).Encode(ollama); err != nil {
-		return "", fmt.Errorf("failed to encode request: %w", err)
+		return "", fmt.Errorf(styles.ErrorStyle("failed to encode request: %w"), err)
 	}
 
 	c := http.Client{Timeout: time.Minute * 3}
@@ -69,24 +70,52 @@ func PullModel(model string) error {
 	for _, m := range models {
 		if m.Name == modelname {
 			cmd := exec.Command("ollama", "pull", model)
-			fmt.Printf("Pulling %s...\n", model)
-			fmt.Println("Could take a while depending on the model size.")
+			msg := fmt.Sprintf("Pulling %s...", model)
+			fmt.Println(styles.OutputStyle(msg))
+			fmt.Println(styles.HintStyle("Could take a while depending on the model size."))
 			if err := cmd.Run(); err != nil {
 				log.Fatalf("<-!-- Could not pull model: %s --->\n", model)
 			}
-			fmt.Println("Finished!")
+			fmt.Println(styles.FinishedStyle("Finished!"))
 			return nil
 		}
 	}
 	return fmt.Errorf("model %s not found in the list of available models", model)
 }
 
+func IsOllamaRunning() bool {
+	resp, err := http.Get("http://localhost:11434")
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode == 200
+}
+
 func ListLocalModels() {
 	cmd := exec.Command("ollama", "list")
-	cmd.Stdout = os.Stdout
-	if err := cmd.Run(); err != nil {
+	out, err := cmd.Output()
+	if err != nil {
 		log.Fatal("<-!-- Could not run 'ollama list' --->\n")
 	}
+
+	lines := strings.Split(string(out), "\n")
+	if len(lines) < 2 {
+		fmt.Println(styles.OutputStyle("No models found."))
+		return
+	}
+
+	var rows []string
+	rows = append(rows, styles.HeaderStyle(lines[0]))
+	for _, line := range lines[1:] {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		rows = append(rows, styles.RowStyle(line))
+	}
+
+	table := styles.TableBorder(strings.Join(rows, "\n"))
+	fmt.Println(table)
 }
 
 func IsModelPresent(model string) bool {
