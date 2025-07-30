@@ -19,7 +19,7 @@ var modelCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		body := config.ReadConfig()
 		out := fmt.Sprintf("Current Model: %s", body.Model)
-		fmt.Println(styles.OutputStyle(out))
+		fmt.Println(styles.TableBorder(styles.OutputStyle(out)))
 	},
 }
 

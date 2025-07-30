@@ -42,7 +42,7 @@ func init() {
 		if _, err := os.Stat(config_Path); os.IsNotExist(err) {
 			err := os.MkdirAll(config_Path, 0755)
 			if err != nil {
-				fmt.Println(styles.ErrorStyle("Error creating config directory: ~/.config/schlama/config.yaml"))
+				fmt.Println(styles.TableBorder(styles.ErrorStyle("Error creating config directory: ~/.config/schlama/config.yaml")))
 				os.Exit(-1)
 			}
 		}
@@ -55,10 +55,10 @@ func init() {
 			})
 		}
 	} else {
-		fmt.Println(styles.ErrorStyle("Ollama is not running."))
-		fmt.Println(styles.OutputStyle("Please start ollama first."))
-		fmt.Println(styles.HintStyle("You can start ollama with the command: 'ollama serve'"))
-		fmt.Println(styles.HintStyle("Or you can install ollama with the command: 'curl -sSfL https://ollama.com/download.sh | sh'"))
+		fmt.Println(styles.TableBorder(styles.ErrorStyle("Ollama is not running.")))
+		fmt.Println(styles.TableBorder(styles.OutputStyle("Please start ollama first.")))
+		fmt.Println(styles.TableBorder(styles.HintStyle("You can start ollama with the command: 'ollama serve'")))
+		fmt.Println(styles.TableBorder(styles.HintStyle("Or you can install ollama with the command: 'curl -sSfL https://ollama.com/download.sh | sh'")))
 		os.Exit(1)
 	}
 }

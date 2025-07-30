@@ -13,9 +13,7 @@ var config_Path string = filepath.Dir(home + "/.config/schlama/")
 var filename string = config_Path + "/config.yaml"
 
 type Config struct {
-	Prompt string `yaml:"prompt"`
-	Model  string `yaml:"model"`
-	Stream bool   `yaml:"stream"`
+	Model string `yaml:"model"`
 }
 
 func ReadConfig() *ollama.OllamaModel {
@@ -23,21 +21,25 @@ func ReadConfig() *ollama.OllamaModel {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		WriteConfig(Config{
-			Prompt: "What is the meaning of life?",
-			Model:  "",
-			Stream: false,
+			Model: "",
 		})
 		return nil
 	}
+	// ignore errors, there should'nt be any
 	err = yaml.Unmarshal(data, &cfg)
-	if cfg.Stream != false {
-		cfg.Stream = false
+	if err != nil {
+		return nil
 	}
 
 	return parseConfig(cfg)
 }
 
 func WriteConfig(cfg Config) error {
+	// Ensure the config directory exists
+	if err := os.MkdirAll(config_Path, 0755); err != nil {
+		return err
+	}
+
 	data, err := yaml.Marshal(&cfg)
 	if err != nil {
 		return err
@@ -48,7 +50,15 @@ func WriteConfig(cfg Config) error {
 func parseConfig(cfg Config) *ollama.OllamaModel {
 	Body := ollama.NewOllamaModel()
 	Body.Model = cfg.Model
-	Body.Prompt = cfg.Prompt
-	Body.Stream = cfg.Stream
+	Body.Prompt = ""
+	Body.Stream = false
 	return Body
+}
+
+// UpdateModel updates just the model in the configuration
+func UpdateModel(modelName string) error {
+	cfg := Config{
+		Model: modelName,
+	}
+	return WriteConfig(cfg)
 }

@@ -23,13 +23,13 @@ var promptCmd = &cobra.Command{
 		} else {
 			body := config.ReadConfig()
 			if body.Model == "" {
-				fmt.Println(styles.HintStyle("No model specified in config. Please set a model using 'schlama select <model_name>'."))
+				fmt.Println(styles.TableBorder(styles.HintStyle("No model specified in config. Please set a model using 'schlama select <model_name>'.")))
 				return
 			}
 			body.Prompt = args[0]
 			resp, err := ollama.GetResponse(body)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println(styles.TableBorder(styles.ErrorStyle(err.Error())))
 				return
 			}
 			ollama.PrintMarkdown(resp)

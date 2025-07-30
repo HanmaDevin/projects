@@ -71,12 +71,12 @@ func PullModel(model string) error {
 		if m.Name == modelname {
 			cmd := exec.Command("ollama", "pull", model)
 			msg := fmt.Sprintf("Pulling %s...", model)
-			fmt.Println(styles.OutputStyle(msg))
-			fmt.Println(styles.HintStyle("Could take a while depending on the model size."))
+			fmt.Println(styles.TableBorder(styles.OutputStyle(msg)))
+			fmt.Println(styles.TableBorder(styles.HintStyle("Could take a while depending on the model size.")))
 			if err := cmd.Run(); err != nil {
 				log.Fatalf("<-!-- Could not pull model: %s --->\n", model)
 			}
-			fmt.Println(styles.FinishedStyle("Finished!"))
+			fmt.Println(styles.TableBorder(styles.FinishedStyle("Finished!")))
 			return nil
 		}
 	}
@@ -92,7 +92,7 @@ func IsOllamaRunning() bool {
 	return resp.StatusCode == 200
 }
 
-func ListLocalModels() []string {
+func ListLocalModels() {
 	cmd := exec.Command("ollama", "list")
 	out, err := cmd.Output()
 	if err != nil {
@@ -101,22 +101,34 @@ func ListLocalModels() []string {
 
 	lines := strings.Split(string(out), "\n")
 	if len(lines) < 2 {
-		fmt.Println(styles.OutputStyle("No models found."))
-		return []string{}
+		message := styles.OutputStyle("No models found.")
+		fmt.Println(styles.TableBorder(message))
+		return
 	}
 
 	var rows []string
-	rows = append(rows, styles.HeaderStyle(lines[0]))
+
+	// Format the header to ensure proper background fill
+	header := lines[0]
+	// Pad the header to a consistent width (65 characters)
+	if len(header) < 65 {
+		header = header + strings.Repeat(" ", 65-len(header))
+	}
+	rows = append(rows, styles.HeaderStyle(header))
+
 	for _, line := range lines[1:] {
 		if strings.TrimSpace(line) == "" {
 			continue
+		}
+		// Also pad the data rows for consistency
+		if len(line) < 65 {
+			line = line + strings.Repeat(" ", 65-len(line))
 		}
 		rows = append(rows, styles.RowStyle(line))
 	}
 
 	table := styles.TableBorder(strings.Join(rows, "\n"))
 	fmt.Println(table)
-	return rows
 }
 
 func IsModelPresent(model string) bool {
@@ -213,7 +225,7 @@ func extractModels(n *html.Node) []ModelInfo {
 }
 
 func ListModels() []ModelInfo {
-	c := http.Client{Timeout: time.Second * 15}
+	c := http.Client{Timeout: time.Minute}
 	resp, err := c.Get("https://ollama.com/library?sort=popular")
 	if err != nil {
 		log.Fatal("<-!-- Could not get a response from ollama.com --->\n")

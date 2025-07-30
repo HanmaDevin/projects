@@ -1,245 +1,156 @@
-# Schlama
+# 🦙 Schlama
 
-A better Ollama user interface - A simple and elegant CLI tool for interacting with local Ollama models.
+> **Because talking to llamas should be this easy!** 🚀
 
-## Overview
+A delightfully simple CLI and TUI for chatting with your local Ollama models. No more wrestling with complex commands - just pure llama magic! ✨
 
-Schlama is a command-line interface that provides an easier way to chat with local large language models through the Ollama API. It offers a streamlined experience for model management and interaction, making it simple to switch between models, send prompts, and manage your local AI setup.
+## 🎯 What Does It Do?
 
-## Features
+Schlama makes your local AI models as easy to use as ordering coffee:
 
-- 🤖 **Easy Model Management**: List, select, and automatically pull models
-- 💬 **Simple Chat Interface**: Send prompts and get formatted responses
-- 📋 **Model Discovery**: Browse available models from Ollama's registry
-- ⚙️ **Configuration Management**: Persistent settings for your preferred models
-- 🎨 **Markdown Rendering**: Beautiful formatted output for model responses
-- 🔄 **Auto-Pull**: Automatically download models when selected if not present locally
+- 🗨️ **Interactive TUI Chat** - Like WhatsApp, but for llamas
+- ⚡ **Lightning CLI** - One-liners for quick AI tasks  
+- 🔄 **Smart Model Management** - Auto-downloads what you need
+- 🎨 **Beautiful Output** - Markdown rendering that doesn't hurt your eyes
 
-## Prerequisites
-
-- [Ollama](https://ollama.com/) must be installed and running on your system
-- Go 1.24.5 or later (for building from source)
-
-## Installation
-
-### From Source
-
-1. Clone the repository:
+## 🚀 Quick Start
 
 ```bash
+# Install Ollama first: https://ollama.com
+# Then build Schlama:
 git clone https://github.com/HanmaDevin/schlama.git
-cd schlama
+cd schlama && make build
+
+# Start the interactive chat
+./bin/schlama tui
+
+# Or use CLI mode
+./bin/schlama select llama3.2
+./bin/schlama prompt "What's the meaning of life?"
 ```
 
-2. Build the application:
+## 🎮 Two Ways to Play
+
+### 🖥️ TUI Mode (Recommended)
 
 ```bash
-# For Unix/Linux/macOS
-make build
-
-# For Windows
-make build_win
+schlama tui
 ```
 
-3. Install (optional):
+- **Interactive chat interface** with scrolling
+- **Built-in commands** (`/help`, `/select`, `/local`, `/list`)
+- **Dynamic sizing** - adapts to your terminal
+- **Persistent conversations** - until you exit
+
+### ⚡ CLI Mode (Power Users)
 
 ```bash
-make install
+schlama list              # Browse all available models
+schlama local             # See what's installed  
+schlama select phi3       # Pick your model (auto-downloads!)
+schlama model             # Check current selection
+schlama prompt "Hi AI!"   # Chat away
 ```
 
-### Pre-built Binaries
+## 🎨 TUI Commands
 
-Download the latest release from the [releases page](https://github.com/HanmaDevin/schlama/releases) and place the binary in your PATH.
+| Command | What It Does | Example |
+|---------|--------------|---------|
+| `/help` | Shows available commands | `/help` |
+| `/select model` | Switch models (pulls if needed) | `/select llama3.2` |
+| `/local` | List installed models | `/local` |
+| `/list` | Browse all available models | `/list` |
+| **Just type** | Chat with current model | `Write me a poem` |
 
-## Usage
+**🎯 Pro Tips:**
 
-### Getting Started
+- Use `↑↓` arrows to scroll through chat history
+- `Ctrl+C` to exit
+- Models auto-download when selected - grab a coffee! ☕
 
-First, make sure Ollama is running on your system. Then you can start using Schlama:
-
-```bash
-# Show help
-schlama --help
-
-# List available models for download
-schlama list
-
-# List locally installed models
-schlama local
-
-# Select a model to use (will auto-download if not present)
-schlama select llama2
-
-# Check currently selected model
-schlama model
-
-# Send a prompt to the selected model
-schlama prompt "Explain quantum computing in simple terms"
-```
-
-### Commands
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `list` | List available models for download | `schlama list --limit 20` |
-| `local` | Show locally installed models | `schlama local` |
-| `select <model>` | Select a model to use | `schlama select llama2:7b` |
-| `model` | Show currently selected model | `schlama model` |
-| `prompt <text>` | Send a prompt to the selected model | `schlama prompt "Hello, world!"` |
-
-### Flags
-
-- `--limit, -l`: Limit the number of results when listing models (default: 50)
-
-## Configuration
-
-Schlama automatically creates a configuration file at `~/.config/schlama/config.yaml` with the following structure:
-
-```yaml
-prompt: "What is the meaning of life?"
-model: ""
-stream: false
-```
-
-The configuration stores:
-
-- **prompt**: Default prompt (currently not used in CLI)
-- **model**: Currently selected model
-- **stream**: Streaming mode (for future features)
-
-## Examples
-
-### Basic Workflow
-
-1. **List available models:**
-
-```bash
-schlama list
-```
-
-2. **Select a model:**
-
-```bash
-schlama select phi3
-```
-
-3. **Chat with the model:**
-
-```bash
-schlama prompt "Write a haiku about programming"
-```
-
-### Advanced Usage
-
-**Limit model list output:**
-
-```bash
-schlama list --limit 10
-```
-
-**Check what model you're using:**
-
-```bash
-schlama model
-```
-
-**View local models:**
-
-```bash
-schlama local
-```
-
-## Development
-
-### Building
-
-```bash
-# Build for current platform
-go build -o bin/schlama .
-
-# Or use Makefile
-make build      # Unix/Linux/macOS
-make build_win  # Windows
-```
-
-### Running
-
-```bash
-# Run directly
-go run .
-
-# Or use built binary
-./bin/schlama        # Unix/Linux/macOS
-./bin/schlama.exe    # Windows
-```
-
-### Project Structure
+## 📁 Project Structure
 
 ```text
-├── cmd/                 # CLI commands
-│   ├── root.go         # Root command and initialization
-│   ├── list.go         # List available models
-│   ├── local.go        # Show local models  
-│   ├── select.go       # Select model
-│   ├── model.go        # Show current model
-│   └── prompt.go       # Send prompts
-├── config/             # Configuration management
-│   └── config.go
-├── ollama/             # Ollama API integration
-│   └── ollama.go
-├── styles/             # UI styling
-│   └── styles.go
-└── main.go            # Entry point
+schlama/
+├── 🎯 cmd/          # CLI commands
+├── ⚙️  config/      # Settings management  
+├── 🦙 ollama/       # API magic
+├── 🎨 styles/       # Pretty colors
+├── 🖥️  tui/         # Interactive interface
+└── 📦 bin/          # Your built binary
 ```
 
-## Dependencies
+## 🔧 Configuration
 
-- [Cobra](https://github.com/spf13/cobra) - CLI framework
-- [Glamour](https://github.com/charmbracelet/glamour) - Markdown rendering
-- [golang.org/x/net](https://golang.org/x/net) - HTTP utilities
-- [yaml.v3](https://gopkg.in/yaml.v3) - YAML configuration
+Lives at `~/.config/schlama/config.yaml`:
 
-## Contributing
+```yaml
+model: "llama3.2"    # Your current model
+```
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## ⚠️ Troubleshooting
 
-## License
+### "Ollama is not running"
 
-This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
+```bash
+ollama serve  # Start Ollama first!
+```
 
-## Troubleshooting
+### "No models found"
 
-### Common Issues
+```bash
+schlama select llama3.2  # Downloads automatically
+```
 
-#### "No model specified in config"
+### TUI looks weird?
 
-- Run `schlama select <model_name>` to select a model first
+- Resize your terminal
+- Try a different terminal emulator
 
-#### "Model not found locally"
+## 🛠️ Building & Development
 
-- The tool will automatically try to download the model
-- Make sure you have internet connectivity and Ollama is running
+```bash
+# Build for your platform
+make build          # Unix/Linux/macOS  
+make build_win      # Windows
 
-#### "Connection refused"
+# Quick development
+go run . tui        # Test TUI
+go run . prompt "test"  # Test CLI
+```
 
-- Ensure Ollama is running (`ollama serve`)
-- Check if Ollama is running on the default port (11434)
+## 🎉 Features
 
-### Getting Help
+- ✅ **Interactive TUI** with real-time chat
+- ✅ **CLI mode** for automation & scripting
+- ✅ **Auto-model downloading**
+- ✅ **Beautiful Catppuccin theme**
+- ✅ **Markdown rendering**
+- ✅ **Scrollable chat history**
+- ✅ **Model management**
+- ✅ **Configuration persistence**
 
-If you encounter issues:
+## 🤝 Contributing
 
-1. Check that Ollama is properly installed and running
-2. Verify your internet connection for model downloads
-3. Check the [issues page](https://github.com/HanmaDevin/schlama/issues) for known problems
-4. Create a new issue if your problem isn't covered
+Got ideas? Found bugs? Want to make llamas even more awesome?
 
-## Acknowledgments
+1. Fork it 🍴
+2. Branch it (`git checkout -b feature/llama-superpowers`)
+3. Commit it (`git commit -m 'Add llama telepathy'`)
+4. Push it (`git push origin feature/llama-superpowers`)
+5. PR it! 🚀
 
-- Thanks to the [Ollama](https://ollama.com/) team for creating an excellent tool for running local LLMs
-- Built with [Cobra](https://cobra.dev/) CLI framework
-- Markdown rendering powered by [Glamour](https://github.com/charmbracelet/glamour)
+## 📜 License
+
+See [LICENSE](LICENSE) file. TL;DR: Be nice, have fun! 🎈
+
+## 🙏 Thanks
+
+- **[Ollama](https://ollama.com/)** - For making local AI accessible
+- **[Bubble Tea](https://github.com/charmbracelet/bubbletea)** - For the amazing TUI framework  
+- **[Cobra](https://cobra.dev/)** - For CLI superpowers
+- **You!** - For giving Schlama a try 🎉
+
+---
+
+**Happy llamaing!** 🦙✨
