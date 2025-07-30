@@ -92,7 +92,7 @@ func IsOllamaRunning() bool {
 	return resp.StatusCode == 200
 }
 
-func ListLocalModels() {
+func ListLocalModels() []string {
 	cmd := exec.Command("ollama", "list")
 	out, err := cmd.Output()
 	if err != nil {
@@ -102,7 +102,7 @@ func ListLocalModels() {
 	lines := strings.Split(string(out), "\n")
 	if len(lines) < 2 {
 		fmt.Println(styles.OutputStyle("No models found."))
-		return
+		return []string{}
 	}
 
 	var rows []string
@@ -116,6 +116,7 @@ func ListLocalModels() {
 
 	table := styles.TableBorder(strings.Join(rows, "\n"))
 	fmt.Println(table)
+	return rows
 }
 
 func IsModelPresent(model string) bool {
