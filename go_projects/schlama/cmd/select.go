@@ -32,12 +32,9 @@ var selectCmd = &cobra.Command{
 					return
 				}
 			}
-			body := config.ReadConfig()
 
 			cfg := config.Config{
-				Prompt: body.Prompt,
-				Model:  args[0],
-				Stream: body.Stream,
+				Model: args[0],
 			}
 			config.WriteConfig(cfg)
 			out := fmt.Sprintf("Current Model: %s", cfg.Model)

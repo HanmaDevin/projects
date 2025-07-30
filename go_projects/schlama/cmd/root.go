@@ -49,9 +49,7 @@ func init() {
 
 		if _, err := os.Stat(config_Path + "/config.yaml"); os.IsNotExist(err) {
 			config.WriteConfig(config.Config{
-				Prompt: "What is the meaning of life?",
-				Model:  "",
-				Stream: false,
+				Model: "",
 			})
 		}
 	} else {
