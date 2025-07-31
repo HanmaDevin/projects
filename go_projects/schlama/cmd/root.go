@@ -56,7 +56,7 @@ func init() {
 		fmt.Println(styles.TableBorder(styles.ErrorStyle("Ollama is not running.")))
 		fmt.Println(styles.TableBorder(styles.OutputStyle("Please start ollama first.")))
 		fmt.Println(styles.TableBorder(styles.HintStyle("You can start ollama with the command: 'ollama serve'")))
-		fmt.Println(styles.TableBorder(styles.HintStyle("Or you can install ollama with the command: 'curl -sSfL https://ollama.com/download.sh | sh'")))
+		fmt.Println(styles.TableBorder(styles.HintStyle("Or you can install ollama with the command: 'curl -fsSL https://ollama.com/install.sh | sh'")))
 		os.Exit(1)
 	}
 }
