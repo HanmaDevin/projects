@@ -85,8 +85,10 @@ schlama/
 Lives at `~/.config/schlama/config.yaml`:
 
 ```yaml
-model: "llama3.2"    # Your current model
+model: "llama3.2"    # Your currently selected model
 ```
+
+> **Note:** The config only stores the selected model. Prompts are handled throughout the app. Stream is always off.
 
 ## ⚠️ Troubleshooting
 

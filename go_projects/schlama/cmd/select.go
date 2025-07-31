@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/HanmaDevin/schlama/config"
 	"github.com/HanmaDevin/schlama/ollama"
@@ -28,7 +29,22 @@ var selectCmd = &cobra.Command{
 				if err != nil {
 					fmt.Println(styles.TableBorder(styles.ErrorStyle(err.Error())))
 					fmt.Println(styles.TableBorder(styles.HintStyle("Here is a list of available models:")))
-					ollama.ListLocalModels()
+					models := ollama.ListModels()
+
+					var rows []string
+					header := fmt.Sprintf("%-25s %-40s", "MODEL NAME", "SIZES")
+					rows = append(rows, styles.HeaderStyle(header))
+					divider := fmt.Sprintf("%-25s %-40s", strings.Repeat("-", 25), strings.Repeat("-", 40))
+					rows = append(rows, styles.RowStyle(divider))
+					for i, model := range models {
+						if i >= int(limit) {
+							break
+						}
+						line := fmt.Sprintf("%-25s %-40s", model.Name, strings.Join(model.Sizes, ", "))
+						rows = append(rows, styles.RowStyle(line))
+					}
+					table := styles.TableBorder(strings.Join(rows, "\n"))
+					fmt.Println(table)
 					return
 				}
 			}

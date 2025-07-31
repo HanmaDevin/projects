@@ -25,7 +25,7 @@ func ReadConfig() *ollama.OllamaModel {
 		})
 		return nil
 	}
-	// ignore errors, there should'nt be any
+	// ignore errors, there shouldn't be any
 	err = yaml.Unmarshal(data, &cfg)
 	if err != nil {
 		return nil
@@ -53,12 +53,4 @@ func parseConfig(cfg Config) *ollama.OllamaModel {
 	Body.Prompt = ""
 	Body.Stream = false
 	return Body
-}
-
-// UpdateModel updates just the model in the configuration
-func UpdateModel(modelName string) error {
-	cfg := Config{
-		Model: modelName,
-	}
-	return WriteConfig(cfg)
 }
