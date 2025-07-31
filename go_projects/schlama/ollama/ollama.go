@@ -140,13 +140,15 @@ func IsModelPresent(model string) bool {
 
 	table := strings.Split(string(out), "\n")[1:] // Skip the header line
 
+	present := false
 	for _, line := range table {
-		fields := strings.Fields(line)
-		if len(fields) > 0 && fields[0] == model {
-			return true
+		present = strings.Contains(line, model)
+
+		if present {
+			return present
 		}
 	}
-	return false
+	return present
 }
 
 type ModelInfo struct {
