@@ -48,6 +48,12 @@ var (
 			Background(Surface1).
 			Padding(0, 1).Render
 
+	UserStyle = lipgloss.NewStyle().
+			Foreground(Blue).Render
+
+	AiStyle = lipgloss.NewStyle().
+		Foreground(Green).Render
+
 	RowStyle = lipgloss.NewStyle().
 			Foreground(Text).
 			Background(Surface0).
