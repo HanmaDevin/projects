@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -74,13 +73,15 @@ func PullModel(model string) error {
 			fmt.Println(styles.TableBorder(styles.OutputStyle(msg)))
 			fmt.Println(styles.TableBorder(styles.HintStyle("Could take a while depending on the model size.")))
 			if err := cmd.Run(); err != nil {
-				log.Fatalf("<-!-- Could not pull model: %s --->\n", model)
+				msg := styles.TableBorder(styles.ErrorStyle(fmt.Sprintf("Could not pull model: %s!", model)))
+				fmt.Println(msg)
+				os.Exit(1)
 			}
 			fmt.Println(styles.TableBorder(styles.FinishedStyle("Finished!")))
 			return nil
 		}
 	}
-	return fmt.Errorf("model %s not found in the list of available models", model)
+	return fmt.Errorf("Model %s not found in the list of available models.", model)
 }
 
 func IsOllamaRunning() bool {
@@ -96,12 +97,14 @@ func ListLocalModels() {
 	cmd := exec.Command("ollama", "list")
 	out, err := cmd.Output()
 	if err != nil {
-		log.Fatal("<-!-- Could not run 'ollama list' --->\n")
+		message := styles.TableBorder(styles.ErrorStyle("Could not run 'ollama list'!"))
+		fmt.Println(message)
+		os.Exit(1)
 	}
 
 	lines := strings.Split(string(out), "\n")
 	if len(lines) < 2 {
-		message := styles.OutputStyle("No models found.")
+		message := styles.OutputStyle("No models found!")
 		fmt.Println(styles.TableBorder(message))
 		return
 	}
@@ -135,7 +138,7 @@ func IsModelPresent(model string) bool {
 	cmd := exec.Command("ollama", "list")
 	out, err := cmd.Output()
 	if err != nil {
-		log.Fatal("<-!-- Could not run 'ollama list' --->\n")
+		fmt.Println(styles.TableBorder(styles.ErrorStyle("Could not run 'ollama list'!")))
 	}
 
 	table := strings.Split(string(out), "\n")[1:] // Skip the header line
@@ -230,13 +233,15 @@ func ListModels() []ModelInfo {
 	c := http.Client{Timeout: time.Minute}
 	resp, err := c.Get("https://ollama.com/library?sort=popular")
 	if err != nil {
-		log.Fatal("<-!-- Could not get a response from ollama.com --->\n")
+		fmt.Println(styles.TableBorder(styles.ErrorStyle("Could not get a response from https://ollama.com")))
+		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal("<-!-- Could not read response from ollama.com --->\n")
+		fmt.Println(styles.TableBorder(styles.ErrorStyle("Could not read response from https://ollama.com")))
+		os.Exit(1)
 	}
 
 	doc, err := html.Parse(bytes.NewReader(b))
@@ -250,12 +255,12 @@ func PrintMarkdown(md string) {
 		glamour.WithWordWrap(100),
 	)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, md)
+		fmt.Println(styles.TableBorder(styles.ErrorStyle("Not able to create markdown renderer!")))
 		return
 	}
 	out, err := r.Render(md)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, md)
+		fmt.Println(styles.TableBorder(styles.ErrorStyle("Not able to render markdown!")))
 		return
 	}
 	fmt.Fprint(os.Stdout, out)

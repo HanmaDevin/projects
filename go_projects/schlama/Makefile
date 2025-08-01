@@ -1,4 +1,4 @@
-install: build
+install:
 	@go install .
 
 run: build
@@ -14,4 +14,5 @@ build_win:
 	@go build -o bin/schlama.exe .
 
 clean:
-	@rm -Recurse ./bin
+	@rm -r ./bin
+	

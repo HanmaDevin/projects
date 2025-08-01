@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/HanmaDevin/schlama/config"
@@ -23,9 +24,20 @@ var selectCmd = &cobra.Command{
 			cmd.Help()
 		} else {
 			// Check if the model is present in the local models
-			if !ollama.IsModelPresent(args[0]) {
+			nameReg := regexp.MustCompile(`[\w\-]+\d?\.?\d?`)
+			name := nameReg.FindString(args[0])
+
+			labelReg := regexp.MustCompile(`:\w+`)
+			label := labelReg.FindString(args[0])
+			if label == "" {
+				label = ":latest"
+			}
+
+			model := name + label
+
+			if !ollama.IsModelPresent(model) {
 				fmt.Println(styles.TableBorder(styles.HintStyle("Model not found locally. Pulling model...")))
-				err := ollama.PullModel(args[0])
+				err := ollama.PullModel(model)
 				if err != nil {
 					fmt.Println(styles.TableBorder(styles.ErrorStyle(err.Error())))
 					fmt.Println(styles.TableBorder(styles.HintStyle("Here is a list of available models:")))
