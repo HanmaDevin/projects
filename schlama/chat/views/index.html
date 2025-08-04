@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat App</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-base-200 min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-xl bg-base-100 shadow-xl rounded-lg p-6 space-y-4">
+    <div id="chat-window" class="h-64 overflow-y-auto mb-4 bg-base-300 rounded p-4">
+      <!-- Chat messages will appear here -->
+    </div>
+    <form class="flex gap-2 items-center">
+      <input type="text" placeholder="Type your message…" class="input input-bordered flex-1" />
+      <input type="file" class="file-input file-input-bordered" />
+      <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+  </div>
+</body>
+
+</html>
