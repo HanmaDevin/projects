@@ -292,3 +292,20 @@ func clean(s string) string {
 
 	return strings.TrimSpace(cleaned)
 }
+
+func Spinner(done chan struct{}, msg string) {
+	chars := []rune{'|', '/', '-', '\\'}
+	i := 0
+	for {
+		select {
+		case <-done:
+			fmt.Print("\r") // Clear spinner
+			return
+		default:
+			fmt.Print(styles.OutputStyle(fmt.Sprintf("%s %c", msg, chars[i%len(chars)])))
+			fmt.Print("\r") // Clear the line before printing the next character
+			time.Sleep(100 * time.Millisecond)
+			i++
+		}
+	}
+}
