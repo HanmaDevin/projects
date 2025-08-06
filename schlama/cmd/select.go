@@ -37,7 +37,10 @@ var selectCmd = &cobra.Command{
 
 			if !ollama.IsModelPresent(model) {
 				fmt.Println(styles.TableBorder(styles.HintStyle("Model not found locally. Pulling model...")))
+				done := make(chan struct{})
+				go ollama.Spinner(done, "Pulling model...")
 				err := ollama.PullModel(model)
+				close(done)
 				if err != nil {
 					fmt.Println(styles.TableBorder(styles.ErrorStyle(err.Error())))
 					fmt.Println(styles.TableBorder(styles.HintStyle("Here is a list of available models:")))
