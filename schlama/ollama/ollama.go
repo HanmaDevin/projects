@@ -17,12 +17,18 @@ import (
 	"golang.org/x/net/html"
 )
 
-const ollama_api = "http://localhost:11434/api/generate"
+const ollama_api = "http://localhost:11434/api/chat"
+
+type Message struct {
+	Role    string   `json:"role"`
+	Content string   `json:"content"`
+	Image   []string `json:"image,omitempty"`
+}
 
 type OllamaModel struct {
-	Model  string `json:"model"`
-	Prompt string `json:"prompt"`
-	Stream bool   `json:"stream"`
+	Model  string  `json:"model"`
+	Msg    Message `json:"message"`
+	Stream bool    `json:"stream"`
 }
 
 type Response struct {
@@ -39,7 +45,8 @@ func GetResponse(ollama *OllamaModel) (string, error) {
 		return "", fmt.Errorf(styles.ErrorStyle("failed to encode request: %w"), err)
 	}
 
-	c := http.Client{Timeout: time.Minute * 3}
+	c := http.Client{Timeout: time.Minute * 10}
+	fmt.Println(styles.HintStyle("Sending request to Ollama API..."))
 	resp, err := c.Post(ollama_api, "application/json", body)
 	if err != nil {
 		return "", fmt.Errorf("post request to ollama api failed: %w", err)
@@ -70,14 +77,14 @@ func PullModel(model string) error {
 		if m.Name == modelname {
 			cmd := exec.Command("ollama", "pull", model)
 			msg := fmt.Sprintf("Pulling %s...", model)
-			fmt.Println(styles.TableBorder(styles.OutputStyle(msg)))
-			fmt.Println(styles.TableBorder(styles.HintStyle("Could take a while depending on the model size.")))
+			fmt.Println(styles.OutputStyle(msg))
+			fmt.Println(styles.HintStyle("Could take a while depending on the model size."))
 			if err := cmd.Run(); err != nil {
-				msg := styles.TableBorder(styles.ErrorStyle(fmt.Sprintf("Could not pull model: %s!", model)))
+				msg := styles.ErrorStyle(fmt.Sprintf("Could not pull model: %s!", model))
 				fmt.Println(msg)
 				os.Exit(1)
 			}
-			fmt.Println(styles.TableBorder(styles.FinishedStyle("Finished!")))
+			fmt.Println(styles.FinishedStyle("Finished!"))
 			return nil
 		}
 	}
@@ -97,7 +104,7 @@ func ListLocalModels() {
 	cmd := exec.Command("ollama", "list")
 	out, err := cmd.Output()
 	if err != nil {
-		message := styles.TableBorder(styles.ErrorStyle("Could not run 'ollama list'!"))
+		message := styles.ErrorStyle("Could not run 'ollama list'!")
 		fmt.Println(message)
 		os.Exit(1)
 	}
@@ -105,7 +112,7 @@ func ListLocalModels() {
 	lines := strings.Split(string(out), "\n")
 	if len(lines) < 2 {
 		message := styles.OutputStyle("No models found!")
-		fmt.Println(styles.TableBorder(message))
+		fmt.Println(message)
 		return
 	}
 
@@ -130,7 +137,7 @@ func ListLocalModels() {
 		rows = append(rows, styles.RowStyle(line))
 	}
 
-	table := styles.TableBorder(strings.Join(rows, "\n"))
+	table := strings.Join(rows, "\n")
 	fmt.Println(table)
 }
 
@@ -138,7 +145,7 @@ func IsModelPresent(model string) bool {
 	cmd := exec.Command("ollama", "list")
 	out, err := cmd.Output()
 	if err != nil {
-		fmt.Println(styles.TableBorder(styles.ErrorStyle("Could not run 'ollama list'!")))
+		fmt.Println(styles.ErrorStyle("Could not run 'ollama list'!"))
 	}
 
 	table := strings.Split(string(out), "\n")[1:] // Skip the header line
@@ -233,14 +240,14 @@ func ListModels() []ModelInfo {
 	c := http.Client{Timeout: time.Minute}
 	resp, err := c.Get("https://ollama.com/library?sort=popular")
 	if err != nil {
-		fmt.Println(styles.TableBorder(styles.ErrorStyle("Could not get a response from https://ollama.com")))
+		fmt.Println(styles.ErrorStyle("Could not get a response from https://ollama.com"))
 		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(styles.TableBorder(styles.ErrorStyle("Could not read response from https://ollama.com")))
+		fmt.Println(styles.ErrorStyle("Could not read response from https://ollama.com"))
 		os.Exit(1)
 	}
 
@@ -255,12 +262,12 @@ func PrintMarkdown(md string) {
 		glamour.WithWordWrap(100),
 	)
 	if err != nil {
-		fmt.Println(styles.TableBorder(styles.ErrorStyle("Not able to create markdown renderer!")))
+		fmt.Println(styles.ErrorStyle("Not able to create markdown renderer!"))
 		return
 	}
 	out, err := r.Render(md)
 	if err != nil {
-		fmt.Println(styles.TableBorder(styles.ErrorStyle("Not able to render markdown!")))
+		fmt.Println(styles.ErrorStyle("Not able to render markdown!"))
 		return
 	}
 	fmt.Fprint(os.Stdout, out)
@@ -291,21 +298,4 @@ func clean(s string) string {
 	cleaned = html.UnescapeString(cleaned)
 
 	return strings.TrimSpace(cleaned)
-}
-
-func Spinner(done chan struct{}, msg string) {
-	chars := []rune{'|', '/', '-', '\\'}
-	i := 0
-	for {
-		select {
-		case <-done:
-			fmt.Print("\r") // Clear spinner
-			return
-		default:
-			fmt.Print(styles.OutputStyle(fmt.Sprintf("%s %c", msg, chars[i%len(chars)])))
-			fmt.Print("\r") // Clear the line before printing the next character
-			time.Sleep(100 * time.Millisecond)
-			i++
-		}
-	}
 }

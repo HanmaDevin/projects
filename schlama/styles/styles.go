@@ -59,11 +59,6 @@ var (
 			Background(Surface0).
 			Padding(0, 1).Render
 
-	TableBorder = lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), true).
-			BorderForeground(Rosewater).
-			Padding(0, 1).Render
-
 	TuiBorder = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(Rosewater).

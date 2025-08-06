@@ -13,7 +13,9 @@ var config_Path string = filepath.Dir(home + "/.config/schlama/")
 var filename string = config_Path + "/config.yaml"
 
 type Config struct {
-	Model string `yaml:"model"`
+	Model  string         `yaml:"model"`
+	Msg    ollama.Message `yaml:"message"`
+	Stream bool           `yaml:"stream"`
 }
 
 func ReadConfig() *ollama.OllamaModel {
@@ -22,6 +24,12 @@ func ReadConfig() *ollama.OllamaModel {
 	if err != nil {
 		WriteConfig(Config{
 			Model: "",
+			Msg: ollama.Message{
+				Role:    "user",
+				Content: "",
+				Image:   nil,
+			},
+			Stream: false,
 		})
 		return nil
 	}
@@ -50,7 +58,9 @@ func WriteConfig(cfg Config) error {
 func parseConfig(cfg Config) *ollama.OllamaModel {
 	Body := ollama.NewOllamaModel()
 	Body.Model = cfg.Model
-	Body.Prompt = ""
+	Body.Msg.Role = "user"
+	Body.Msg.Content = ""
+	Body.Msg.Image = nil
 	Body.Stream = false
 	return Body
 }

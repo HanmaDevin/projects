@@ -29,38 +29,37 @@ var promptCmd = &cobra.Command{
 		} else {
 			body := config.ReadConfig()
 			if body.Model == "" {
-				fmt.Println(styles.TableBorder(styles.HintStyle("No model specified in config. Please set a model using 'schlama select <model_name>'.")))
+				fmt.Println(styles.HintStyle("No model specified in config. Please set a model using 'schlama select <model_name>'."))
 				return
 			}
 
-			body.Prompt = args[0]
+			body.Msg.Content = args[0]
 
 			var f []byte
 			var err error
-			if file != "" {
+			if cmd.Flags().Changed("file") {
+				fmt.Println(styles.HintStyle("Reading file: " + file))
 				f, err = os.ReadFile(file)
 				if err != nil {
-					fmt.Println(styles.TableBorder(styles.ErrorStyle("Not able to read the specified file!")))
+					fmt.Println(styles.ErrorStyle("Not able to read the specified file!"))
 					os.Exit(1)
 				}
-				body.Prompt += "\n" + string(f)
+				body.Msg.Content += "\n" + string(f)
 			}
 
-			if directory != "" {
+			if cmd.Flags().Changed("directory") {
+				fmt.Println(styles.HintStyle("Reading directory: " + directory))
 				data, err := getDirContent(directory)
 				if err != nil {
-					fmt.Println(styles.TableBorder(styles.ErrorStyle("Not able to read the specified directory!")))
+					fmt.Println(styles.ErrorStyle("Not able to read the specified directory!"))
 					os.Exit(1)
 				}
-				body.Prompt += "\n" + data
+				body.Msg.Content += "\n" + data
 			}
 
-			done := make(chan struct{})
-			go ollama.Spinner(done, "Generating response...")
 			resp, err := ollama.GetResponse(body)
-			close(done)
 			if err != nil {
-				fmt.Println(styles.TableBorder(styles.ErrorStyle(err.Error())))
+				fmt.Println(styles.ErrorStyle(err.Error()))
 				return
 			}
 			ollama.PrintMarkdown(resp)
@@ -79,6 +78,7 @@ func getDirContent(root string) (string, error) {
 			if err != nil {
 				return err
 			}
+			fmt.Println(styles.HintStyle("Reading file: " + path))
 			sb.WriteString("File: " + filepath.Base(path) + "\n")
 			sb.Write(content)
 			sb.WriteString("\n\n")

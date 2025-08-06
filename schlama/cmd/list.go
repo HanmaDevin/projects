@@ -34,7 +34,7 @@ var listCmd = &cobra.Command{
 			line := fmt.Sprintf("%-25s %-40s", model.Name, strings.Join(model.Sizes, ", "))
 			rows = append(rows, styles.RowStyle(line))
 		}
-		table := styles.TableBorder(strings.Join(rows, "\n"))
+		table := strings.Join(rows, "\n")
 		fmt.Println(table)
 	},
 }

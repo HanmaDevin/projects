@@ -31,11 +31,11 @@ func main() {
 
 	err := openURL("http://localhost:8080")
 	if err != nil {
-		fmt.Println(styles.TableBorder(styles.ErrorStyle("Failed to open browser: " + err.Error())))
+		fmt.Println(styles.ErrorStyle("Failed to open browser: " + err.Error()))
 		os.Exit(1)
 	}
 
-	fmt.Println(styles.TableBorder(styles.HintStyle("Chat started in your browser at http://localhost:8080")))
+	fmt.Println(styles.HintStyle("Chat started in your browser at http://localhost:8080"))
 	server.ListenAndServe()
 
 }

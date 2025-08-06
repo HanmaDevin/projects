@@ -36,14 +36,11 @@ var selectCmd = &cobra.Command{
 			model := name + label
 
 			if !ollama.IsModelPresent(model) {
-				fmt.Println(styles.TableBorder(styles.HintStyle("Model not found locally. Pulling model...")))
-				done := make(chan struct{})
-				go ollama.Spinner(done, "Pulling model...")
+				fmt.Println(styles.HintStyle("Model not found locally. Pulling model..."))
 				err := ollama.PullModel(model)
-				close(done)
 				if err != nil {
-					fmt.Println(styles.TableBorder(styles.ErrorStyle(err.Error())))
-					fmt.Println(styles.TableBorder(styles.HintStyle("Here is a list of available models:")))
+					fmt.Println(styles.ErrorStyle(err.Error()))
+					fmt.Println(styles.HintStyle("Here is a list of available models:"))
 					models := ollama.ListModels()
 
 					var rows []string
@@ -58,7 +55,7 @@ var selectCmd = &cobra.Command{
 						line := fmt.Sprintf("%-25s %-40s", model.Name, strings.Join(model.Sizes, ", "))
 						rows = append(rows, styles.RowStyle(line))
 					}
-					table := styles.TableBorder(strings.Join(rows, "\n"))
+					table := strings.Join(rows, "\n")
 					fmt.Println(table)
 					return
 				}
@@ -66,10 +63,16 @@ var selectCmd = &cobra.Command{
 
 			cfg := config.Config{
 				Model: model,
+				Msg: ollama.Message{
+					Role:    "user",
+					Content: "",
+					Image:   nil,
+				},
+				Stream: false,
 			}
 			config.WriteConfig(cfg)
 			out := fmt.Sprintf("Current Model: %s", cfg.Model)
-			fmt.Println(styles.TableBorder(styles.OutputStyle(out)))
+			fmt.Println(styles.OutputStyle(out))
 		}
 	},
 }
