@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"text/template"
 
+	"github.com/HanmaDevin/schlama/config"
+	"github.com/HanmaDevin/schlama/ollama"
 	"github.com/HanmaDevin/schlama/styles"
 )
 
@@ -16,11 +18,36 @@ import (
 var views embed.FS
 var t, _ = template.New("").ParseFS(views, "views/*.html")
 
+type Response struct {
+	Prompt string
+	Resp   string
+}
+
 func main() {
 	router := http.NewServeMux()
 	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		if err := t.ExecuteTemplate(w, "index.html", nil); err != nil {
 			http.Error(w, "Something went wrong :(", http.StatusInternalServerError)
+		}
+	})
+
+	router.HandleFunc("POST /chat", func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Failed to parse form", http.StatusBadRequest)
+			return
+		}
+
+		cfg := config.ReadConfig()
+
+		resp, err := ollama.GetResponse(cfg)
+		if err != nil {
+			http.Error(w, "Failed to get response from Ollama: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.ExecuteTemplate(w, "response.html", resp); err != nil {
+			http.Error(w, "Failed to render response: "+err.Error(), http.StatusInternalServerError)
+			return
 		}
 	})
 
