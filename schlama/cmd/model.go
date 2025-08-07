@@ -14,8 +14,8 @@ import (
 // modelCmd represents the model command
 var modelCmd = &cobra.Command{
 	Use:   "model",
-	Short: "Show the current selected model.",
-	Long:  `Show the current selected model.`,
+	Short: "Show the currently selected model.",
+	Long:  `Show the currently selected model.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		body := config.ReadConfig()
 		out := fmt.Sprintf("Current Model: %s", body.Model)

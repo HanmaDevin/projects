@@ -18,7 +18,7 @@ import (
 var selectCmd = &cobra.Command{
 	Use:   "select",
 	Short: "Selects which model to chat with.",
-	Long:  `This command sets the model to chat with. To list available model use 'local' command`,
+	Long:  `This command sets the model to chat with. To list locally available models use 'schlama local' command`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			cmd.Help()

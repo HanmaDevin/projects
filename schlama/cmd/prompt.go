@@ -24,8 +24,8 @@ var images []string
 // promptCmd represents the prompt command
 var promptCmd = &cobra.Command{
 	Use:   "prompt",
-	Short: "Prompt the model with a message and/or file",
-	Long:  `Makes an api call to localhost:11343/api/generate and outputs the response in a more readable fashion.`,
+	Short: "Prompt the model with a message and/or file/directory/image content",
+	Long:  `Makes an api call to localhost:11434/api/chat and outputs the response in a more readable fashion.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			cmd.Help()

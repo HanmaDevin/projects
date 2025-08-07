@@ -18,7 +18,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "schlama",
 	Short: "A better ollama user interface.",
-	Long:  `Schlama is a cli or tui user interface, depending on what you perfer, which allows for easy communication with the local ollama api. Basically an easier way to chat with local model or install new ones. For more control over the models please use the ollama cli. This is just a simpler way to interact with the ollama api and having a bit of control over the models.`,
+	Long:  `Schlama is a CLI and a web-chat app, depending on what you perfer, which allows for easy communication with local LLMs. It allows file/directory input and images are also supported (Only works with multimodal models). Basically an easier way to chat with local LLMs and install new ones. For more control over the models please use the ollama CLI. This is just a simpler way to interact with the ollama api and having a bit of control over the models.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			cmd.Help()
