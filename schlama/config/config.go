@@ -13,9 +13,7 @@ var config_Path string = filepath.Dir(home + "/.config/schlama/")
 var filename string = config_Path + "/config.yaml"
 
 type Config struct {
-	Model  string         `yaml:"model"`
-	Msg    ollama.Message `yaml:"message"`
-	Stream bool           `yaml:"stream"`
+	Model string `yaml:"model"`
 }
 
 func ReadConfig() *ollama.OllamaModel {
@@ -24,14 +22,7 @@ func ReadConfig() *ollama.OllamaModel {
 	if err != nil {
 		WriteConfig(Config{
 			Model: "",
-			Msg: ollama.Message{
-				Role:    "user",
-				Content: "",
-				Images:  nil,
-			},
-			Stream: false,
 		})
-		return nil
 	}
 	// ignore errors, there shouldn't be any
 	err = yaml.Unmarshal(data, &cfg)

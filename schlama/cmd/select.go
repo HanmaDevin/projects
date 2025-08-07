@@ -63,12 +63,6 @@ var selectCmd = &cobra.Command{
 
 			cfg := config.Config{
 				Model: model,
-				Msg: ollama.Message{
-					Role:    "user",
-					Content: "",
-					Images:  nil,
-				},
-				Stream: false,
 			}
 			config.WriteConfig(cfg)
 			out := fmt.Sprintf("Current Model: %s", cfg.Model)

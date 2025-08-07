@@ -50,12 +50,6 @@ func init() {
 		if _, err := os.Stat(config_Path + "/config.yaml"); os.IsNotExist(err) {
 			config.WriteConfig(config.Config{
 				Model: "",
-				Msg: ollama.Message{
-					Role:    "user",
-					Content: "",
-					Images:  nil,
-				},
-				Stream: false,
 			})
 		}
 	} else {
