@@ -22,17 +22,17 @@ const ollama_api = "http://localhost:11434/api/chat"
 type Message struct {
 	Role    string   `json:"role"`
 	Content string   `json:"content"`
-	Image   []string `json:"image,omitempty"`
+	Images  []string `json:"images,omitempty"`
 }
 
 type OllamaModel struct {
-	Model  string  `json:"model"`
-	Msg    Message `json:"message"`
-	Stream bool    `json:"stream"`
+	Model  string    `json:"model"`
+	Msg    []Message `json:"messages"`
+	Stream bool      `json:"stream"`
 }
 
 type Response struct {
-	Resp string `json:"response"`
+	Resp Message `json:"message"`
 }
 
 func NewOllamaModel() *OllamaModel {
@@ -62,11 +62,11 @@ func GetResponse(ollama *OllamaModel) (string, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&ai); err != nil {
 		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
-	if ai.Resp == "" {
+	if ai.Resp.Content == "" {
 		return "", fmt.Errorf("ollama api returned empty response")
 	}
 
-	return clean(ai.Resp), nil
+	return clean(ai.Resp.Content), nil
 }
 
 func PullModel(model string) error {

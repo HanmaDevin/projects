@@ -4,7 +4,9 @@ Copyright © 2025 Devin Brunk Cardosa
 package cmd
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +19,7 @@ import (
 
 var file string
 var directory string
+var images []string
 
 // promptCmd represents the prompt command
 var promptCmd = &cobra.Command{
@@ -33,7 +36,7 @@ var promptCmd = &cobra.Command{
 				return
 			}
 
-			body.Msg.Content = args[0]
+			body.Msg[0].Content = args[0]
 
 			var f []byte
 			var err error
@@ -44,7 +47,7 @@ var promptCmd = &cobra.Command{
 					fmt.Println(styles.ErrorStyle("Not able to read the specified file!"))
 					os.Exit(1)
 				}
-				body.Msg.Content += "\n" + string(f)
+				body.Msg[0].Content += "\n" + string(f)
 			}
 
 			if cmd.Flags().Changed("directory") {
@@ -54,7 +57,19 @@ var promptCmd = &cobra.Command{
 					fmt.Println(styles.ErrorStyle("Not able to read the specified directory!"))
 					os.Exit(1)
 				}
-				body.Msg.Content += "\n" + data
+				body.Msg[0].Content += "\n" + data
+			}
+
+			if cmd.Flags().Changed("images") {
+				for _, imgPath := range images {
+					fmt.Println(styles.HintStyle("Reading image: " + imgPath))
+					encoded, err := encodeImageToBase64(imgPath)
+					if err != nil {
+						fmt.Println(styles.ErrorStyle("Not able to read the specified image!"))
+						os.Exit(1)
+					}
+					body.Msg[0].Images = append(body.Msg[0].Images, encoded)
+				}
 			}
 
 			resp, err := ollama.GetResponse(body)
@@ -65,6 +80,20 @@ var promptCmd = &cobra.Command{
 			ollama.PrintMarkdown(resp)
 		}
 	},
+}
+
+func encodeImageToBase64(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+	encoded := base64.StdEncoding.EncodeToString(data)
+	return encoded, nil
 }
 
 func getDirContent(root string) (string, error) {
@@ -91,5 +120,6 @@ func getDirContent(root string) (string, error) {
 func init() {
 	promptCmd.Flags().StringVarP(&file, "file", "f", "", "Prompt with file content")
 	promptCmd.Flags().StringVarP(&directory, "directory", "d", "", "Prompt with directory content")
+	promptCmd.Flags().StringSliceVarP(&images, "images", "i", nil, "Prompt with image content")
 	rootCmd.AddCommand(promptCmd)
 }

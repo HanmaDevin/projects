@@ -66,7 +66,7 @@ var selectCmd = &cobra.Command{
 				Msg: ollama.Message{
 					Role:    "user",
 					Content: "",
-					Image:   nil,
+					Images:  nil,
 				},
 				Stream: false,
 			}

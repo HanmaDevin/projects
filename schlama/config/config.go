@@ -27,7 +27,7 @@ func ReadConfig() *ollama.OllamaModel {
 			Msg: ollama.Message{
 				Role:    "user",
 				Content: "",
-				Image:   nil,
+				Images:  nil,
 			},
 			Stream: false,
 		})
@@ -58,9 +58,13 @@ func WriteConfig(cfg Config) error {
 func parseConfig(cfg Config) *ollama.OllamaModel {
 	Body := ollama.NewOllamaModel()
 	Body.Model = cfg.Model
-	Body.Msg.Role = "user"
-	Body.Msg.Content = ""
-	Body.Msg.Image = nil
+	Body.Msg = []ollama.Message{
+		{
+			Role:    "user",
+			Content: "",
+			Images:  nil,
+		},
+	}
 	Body.Stream = false
 	return Body
 }

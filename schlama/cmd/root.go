@@ -53,7 +53,7 @@ func init() {
 				Msg: ollama.Message{
 					Role:    "user",
 					Content: "",
-					Image:   nil,
+					Images:  nil,
 				},
 				Stream: false,
 			})
