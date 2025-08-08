@@ -28,21 +28,26 @@ type data struct {
 	Prompt  string   `json:"prompt"`
 	Resp    string   `json:"response"`
 	Options []string `json:"options"`
+	Message string   `json:"message"`
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println(styles.OutputStyle("Starting chat..."))
 	cfg := config.ReadConfig()
 	data := data{
-		Model:  cfg.Model,
-		Prompt: "",
-		Resp:   "",
+		Model:   cfg.Model,
+		Prompt:  "",
+		Resp:    "",
+		Message: "",
 	}
 
 	models, err := getLocalModels()
 	if err != nil {
 		log.Println(styles.ErrorStyle("Failed to get local models: " + err.Error()))
 		http.Error(w, "Failed to get local models: "+err.Error(), http.StatusInternalServerError)
+		t.ExecuteTemplate(w, "error.html", map[string]string{
+			"Message": "Something went wrong :(",
+		})
 		return
 	}
 
@@ -51,6 +56,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if err := t.ExecuteTemplate(w, "index.html", data); err != nil {
 		log.Println(styles.ErrorStyle("Failed to render index template: " + err.Error()))
 		http.Error(w, "Something went wrong :(", http.StatusInternalServerError)
+		t.ExecuteTemplate(w, "error.html", map[string]string{
+			"Message": "Something went wrong :(",
+		})
 	}
 }
 
@@ -59,6 +67,9 @@ func setModelHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(styles.ErrorStyle("Failed to parse form: " + err.Error()))
 		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		t.ExecuteTemplate(w, "error.html", map[string]string{
+			"Message": "Something went wrong :(",
+		})
 		return
 	}
 
@@ -68,6 +79,9 @@ func setModelHandler(w http.ResponseWriter, r *http.Request) {
 	if err := config.WriteConfig(cfg); err != nil {
 		log.Println(styles.ErrorStyle("Failed to write config: " + err.Error()))
 		http.Error(w, "Failed to write config: "+err.Error(), http.StatusInternalServerError)
+		t.ExecuteTemplate(w, "error.html", map[string]string{
+			"Message": "Something went wrong :(",
+		})
 		return
 	}
 }
@@ -77,6 +91,9 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(200 << 20); err != nil {
 		log.Println(styles.ErrorStyle("Failed to parse form: " + err.Error()))
 		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		t.ExecuteTemplate(w, "error.html", map[string]string{
+			"Message": "Something went wrong :(",
+		})
 		return
 	}
 	cfg := config.ReadConfig()
@@ -85,6 +102,24 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	if prompt == "" {
 		log.Println(styles.OutputStyle("Prompt cannot be empty"))
 		http.Error(w, "Prompt cannot be empty", http.StatusBadRequest)
+		models, err := getLocalModels()
+		if err != nil {
+			log.Println(styles.ErrorStyle("Failed to get local models: " + err.Error()))
+			http.Error(w, "Failed to get local models: "+err.Error(), http.StatusInternalServerError)
+			t.ExecuteTemplate(w, "error.html", map[string]string{
+				"Message": "Something went wrong :(",
+			})
+			return
+		}
+
+		data := data{
+			Model:   cfg.Model,
+			Prompt:  "",
+			Resp:    "",
+			Message: "Prompt cannot be empty",
+			Options: models,
+		}
+		t.ExecuteTemplate(w, "index.html", data)
 		return
 	}
 	cfg.Msg[0].Content = prompt
@@ -95,6 +130,9 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(styles.ErrorStyle("Failed to open file: " + err.Error()))
 			http.Error(w, "Failed to open file: "+err.Error(), http.StatusInternalServerError)
+			t.ExecuteTemplate(w, "error.html", map[string]string{
+				"Message": "Something went wrong :(",
+			})
 			return
 		}
 		defer file.Close()
@@ -102,6 +140,9 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(styles.ErrorStyle("Failed to read file: " + err.Error()))
 			http.Error(w, "Failed to read file: "+err.Error(), http.StatusInternalServerError)
+			t.ExecuteTemplate(w, "error.html", map[string]string{
+				"Message": "Something went wrong :(",
+			})
 			return
 		}
 		switch fileHeader.Header.Get("Content-Type") {
@@ -119,8 +160,11 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println(styles.OutputStyle("Received JSON file: " + fileHeader.Filename))
 			cfg.Msg[0].Content += "\n" + string(content)
 		case "text/xml", "application/xml":
-			cfg.Msg[0].Content += "\n" + string(content)
 			log.Println(styles.OutputStyle("Received XML file: " + fileHeader.Filename))
+			cfg.Msg[0].Content += "\n" + string(content)
+		case "application/x-shellscript":
+			log.Println(styles.OutputStyle("Received shell script file: " + fileHeader.Filename))
+			cfg.Msg[0].Content += "\n" + string(content)
 		default:
 			log.Println(styles.OutputStyle("Received file with unknown content type: " + fileHeader.Header.Get("Content-Type")))
 			cfg.Msg[0].Content += "\n" + string(content)
@@ -131,6 +175,9 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(styles.OutputStyle("Failed to get response from Ollama: " + err.Error()))
 		http.Error(w, "Failed to get response from Ollama: "+err.Error(), http.StatusInternalServerError)
+		t.ExecuteTemplate(w, "error.html", map[string]string{
+			"Message": "Something went wrong :(",
+		})
 		return
 	}
 
@@ -143,6 +190,9 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	if err := t.ExecuteTemplate(w, "response.html", data); err != nil {
 		log.Println(styles.OutputStyle("Failed to render response template: " + err.Error()))
 		http.Error(w, "Failed to render response: "+err.Error(), http.StatusInternalServerError)
+		t.ExecuteTemplate(w, "error.html", map[string]string{
+			"Message": "Something went wrong :(",
+		})
 		return
 	}
 }
