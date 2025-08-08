@@ -7,14 +7,25 @@
   <title>Schlama Chat</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"
+    integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm"
+    crossorigin="anonymous"></script>
 </head>
 
 <body class="bg-base-200 min-h-screen min-w-screen h-screen w-screen flex items-center justify-center">
+  <form id="model-form">
+    <select id="models" name="model" hx-post="/set-model" hx-trigger="input changed" hx-swap="none" hx-target="this"
+      class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-base-200 bg-opacity-80 rounded-lg px-6 py-3 shadow-lg text-xl font-semibold text-center w-auto max-w-lg">
+      {{range .Options}}
+      <option value="{{.}}" {{if eq . $.Model}}selected{{end}}>{{.}}</option>
+      {{end}}
+    </select>
+  </form>
   <div class="w-full h-full max-w-none max-h-none bg-base-100 shadow-xl rounded-none p-0 m-0 flex flex-col">
     <div id="chat-window" class="flex-1 overflow-y-auto mb-0 bg-base-300 rounded-none p-4">
       <!-- Chat messages will appear here -->
     </div>
-    <form hx-post="/chat" hx-target="#chat-window" hx-swap="beforeend"
+    <form id="prompt-form" hx-post="/chat" hx-target="#chat-window" hx-swap="beforeend"
       class="flex flex-col gap-2 p-4 border-t bg-base-100 w-full">
       <div class="flex flex-col gap-2 sm:flex-row sm:gap-2 items-center mb-2">
         <label class="flex flex-col items-center cursor-pointer">

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"text/template"
 
 	"github.com/HanmaDevin/schlama/config"
@@ -18,20 +19,55 @@ import (
 var views embed.FS
 var t, _ = template.New("").ParseFS(views, "views/*.html")
 
-type Response struct {
-	Prompt string
-	Resp   string
+type data struct {
+	Model   string   `json:"model"`
+	Prompt  string   `json:"prompt"`
+	Resp    string   `json:"response"`
+	Options []string `json:"options"`
 }
 
-func main() {
+func Start() {
 	router := http.NewServeMux()
 	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		if err := t.ExecuteTemplate(w, "index.html", nil); err != nil {
+		fmt.Println(styles.HintStyle("Starting chat..."))
+		cfg := config.ReadConfig()
+		data := data{
+			Model:  cfg.Model,
+			Prompt: "",
+			Resp:   "",
+		}
+
+		models, err := getLocalModels()
+		if err != nil {
+			http.Error(w, "Failed to get local models: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		data.Options = models
+
+		if err := t.ExecuteTemplate(w, "index.html", data); err != nil {
 			http.Error(w, "Something went wrong :(", http.StatusInternalServerError)
 		}
 	})
 
+	router.HandleFunc("POST /set-model", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(styles.HintStyle("Setting model..."))
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Failed to parse form", http.StatusBadRequest)
+			return
+		}
+
+		cfg := config.Config{
+			Model: r.FormValue("model"),
+		}
+		if err := config.WriteConfig(cfg); err != nil {
+			http.Error(w, "Failed to write config: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
+
 	router.HandleFunc("POST /chat", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(styles.HintStyle("Processing chat..."))
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, "Failed to parse form", http.StatusBadRequest)
 			return
@@ -86,6 +122,19 @@ func openURL(url string) error {
 	return exec.Command(cmd, args...).Run()
 }
 
-func Start() {
-	main()
+func getLocalModels() ([]string, error) {
+	cmd := exec.Command("ollama", "list")
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(output), "\n")
+	var models []string
+	for _, line := range lines[1:] { // skip header
+		fields := strings.Fields(line)
+		if len(fields) > 0 {
+			models = append(models, fields[0])
+		}
+	}
+	return models, nil
 }
