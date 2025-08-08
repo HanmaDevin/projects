@@ -19,6 +19,14 @@ var rootCmd = &cobra.Command{
 	Use:   "schlama",
 	Short: "A better ollama user interface.",
 	Long:  `Schlama is a CLI and a web-chat app, depending on what you perfer, which allows for easy communication with local LLMs. It allows file/directory input and images are also supported (Only works with multimodal models). Basically an easier way to chat with local LLMs and install new ones. For more control over the models please use the ollama CLI. This is just a simpler way to interact with the ollama api and having a bit of control over the models.`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		file, err := os.ReadFile("./banner.txt")
+		if err != nil {
+			fmt.Println(styles.ErrorStyle("Error reading banner file: " + err.Error()))
+			os.Exit(1)
+		}
+		fmt.Println(styles.OutputStyle(string(file)))
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			cmd.Help()

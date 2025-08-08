@@ -195,6 +195,12 @@ func Start() {
 		os.Exit(1)
 	}
 
+	banner, err := os.ReadFile("banner.txt")
+	if err != nil {
+		fmt.Println(styles.ErrorStyle("Failed to read banner file: " + err.Error()))
+		os.Exit(1)
+	}
+	fmt.Println(styles.HintStyle(string(banner)))
 	fmt.Println(styles.HintStyle("Chat started in your browser at http://localhost:8080"))
 	server.ListenAndServe()
 }
