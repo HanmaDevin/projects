@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"text/template"
@@ -30,128 +30,128 @@ type data struct {
 	Options []string `json:"options"`
 }
 
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println(styles.OutputStyle("Starting chat..."))
+	cfg := config.ReadConfig()
+	data := data{
+		Model:  cfg.Model,
+		Prompt: "",
+		Resp:   "",
+	}
+
+	models, err := getLocalModels()
+	if err != nil {
+		log.Println(styles.ErrorStyle("Failed to get local models: " + err.Error()))
+		http.Error(w, "Failed to get local models: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data.Options = models
+
+	if err := t.ExecuteTemplate(w, "index.html", data); err != nil {
+		log.Println(styles.ErrorStyle("Failed to render index template: " + err.Error()))
+		http.Error(w, "Something went wrong :(", http.StatusInternalServerError)
+	}
+}
+
+func setModelHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println(styles.OutputStyle("Setting model..."))
+	if err := r.ParseForm(); err != nil {
+		log.Println(styles.ErrorStyle("Failed to parse form: " + err.Error()))
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
+
+	cfg := config.Config{
+		Model: r.FormValue("model"),
+	}
+	if err := config.WriteConfig(cfg); err != nil {
+		log.Println(styles.ErrorStyle("Failed to write config: " + err.Error()))
+		http.Error(w, "Failed to write config: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func chatHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println(styles.OutputStyle("Handling chat request..."))
+	if err := r.ParseMultipartForm(200 << 20); err != nil {
+		log.Println(styles.ErrorStyle("Failed to parse form: " + err.Error()))
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
+	cfg := config.ReadConfig()
+
+	prompt := r.FormValue("prompt")
+	if prompt == "" {
+		log.Println(styles.OutputStyle("Prompt cannot be empty"))
+		http.Error(w, "Prompt cannot be empty", http.StatusBadRequest)
+		return
+	}
+	cfg.Msg[0].Content = prompt
+
+	form := r.MultipartForm
+	for _, fileHeader := range form.File["files"] {
+		file, err := fileHeader.Open()
+		if err != nil {
+			log.Println(styles.ErrorStyle("Failed to open file: " + err.Error()))
+			http.Error(w, "Failed to open file: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+		content, err := io.ReadAll(file)
+		if err != nil {
+			log.Println(styles.ErrorStyle("Failed to read file: " + err.Error()))
+			http.Error(w, "Failed to read file: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		switch fileHeader.Header.Get("Content-Type") {
+		case "text/plain":
+			log.Println(styles.OutputStyle("Received text file: " + fileHeader.Filename))
+			cfg.Msg[0].Content += "\n" + string(content)
+		case "image/png", "image/jpeg", "image/gif":
+			log.Println(styles.OutputStyle("Received image file: " + fileHeader.Filename))
+			encoded := encodeImageToBase64(content)
+			cfg.Msg[0].Images = append(cfg.Msg[0].Images, encoded)
+		case "text/html":
+			log.Println(styles.OutputStyle("Received HTML file: " + fileHeader.Filename))
+			cfg.Msg[0].Content += "\n" + string(content)
+		case "application/json":
+			log.Println(styles.OutputStyle("Received JSON file: " + fileHeader.Filename))
+			cfg.Msg[0].Content += "\n" + string(content)
+		case "text/xml", "application/xml":
+			cfg.Msg[0].Content += "\n" + string(content)
+			log.Println(styles.OutputStyle("Received XML file: " + fileHeader.Filename))
+		default:
+			log.Println(styles.OutputStyle("Received file with unknown content type: " + fileHeader.Header.Get("Content-Type")))
+			cfg.Msg[0].Content += "\n" + string(content)
+		}
+	}
+
+	resp, err := ollama.GetResponse(cfg)
+	if err != nil {
+		log.Println(styles.OutputStyle("Failed to get response from Ollama: " + err.Error()))
+		http.Error(w, "Failed to get response from Ollama: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := data{
+		Model:  cfg.Model,
+		Prompt: prompt,
+		Resp:   resp,
+	}
+
+	if err := t.ExecuteTemplate(w, "response.html", data); err != nil {
+		log.Println(styles.OutputStyle("Failed to render response template: " + err.Error()))
+		http.Error(w, "Failed to render response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func Start() {
 	router := http.NewServeMux()
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		log.Println(styles.OutputStyle("Starting chat..."))
-		cfg := config.ReadConfig()
-		data := data{
-			Model:  cfg.Model,
-			Prompt: "",
-			Resp:   "",
-		}
-
-		models, err := getLocalModels()
-		if err != nil {
-			log.Println(styles.OutputStyle("Failed to get local models: " + err.Error()))
-			http.Error(w, "Failed to get local models: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data.Options = models
-
-		if err := t.ExecuteTemplate(w, "index.html", data); err != nil {
-			log.Println(styles.OutputStyle("Failed to render index template: " + err.Error()))
-			http.Error(w, "Something went wrong :(", http.StatusInternalServerError)
-		}
-	})
-
-	router.HandleFunc("POST /set-model", func(w http.ResponseWriter, r *http.Request) {
-		log.Println(styles.OutputStyle("Setting model..."))
-		if err := r.ParseForm(); err != nil {
-			log.Println(styles.OutputStyle("Failed to parse form: " + err.Error()))
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		cfg := config.Config{
-			Model: r.FormValue("model"),
-		}
-		if err := config.WriteConfig(cfg); err != nil {
-			log.Println(styles.OutputStyle("Failed to write config: " + err.Error()))
-			http.Error(w, "Failed to write config: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
-
-	router.HandleFunc("POST /chat", func(w http.ResponseWriter, r *http.Request) {
-		log.Println(styles.OutputStyle("Handling chat request..."))
-		if err := r.ParseMultipartForm(200 << 20); err != nil {
-			log.Println(styles.OutputStyle("Failed to parse form: " + err.Error()))
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-		cfg := config.ReadConfig()
-
-		prompt := r.FormValue("prompt")
-		if prompt == "" {
-			log.Println(styles.OutputStyle("Prompt cannot be empty"))
-			http.Error(w, "Prompt cannot be empty", http.StatusBadRequest)
-			return
-		}
-		cfg.Msg[0].Content = prompt
-
-		file, fileHeader, err := r.FormFile("file")
-		if err != nil && err != http.ErrMissingFile {
-			return
-		}
-		if err == nil {
-			defer file.Close()
-			log.Println(styles.OutputStyle("Received file: " + fileHeader.Filename))
-			content, err := io.ReadAll(file)
-			if err != nil {
-				log.Println(styles.OutputStyle("Failed to read file: " + err.Error()))
-				http.Error(w, "Failed to read file: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-			cfg.Msg[0].Content += "\n" + string(content)
-		} else if err == http.ErrMissingFile {
-			log.Println(styles.OutputStyle("No file uploaded"))
-		}
-
-		dir := r.FormValue("dir")
-		log.Println(styles.OutputStyle("Received directory: " + dir))
-		if dir != "" {
-			content, err := getDirContent(dir)
-			if err != nil {
-				log.Println(styles.OutputStyle("Failed to read directory: " + err.Error()))
-				http.Error(w, "Failed to read directory: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-			cfg.Msg[0].Content += "\n" + content
-		}
-
-		images := r.FormValue("images")
-		log.Println(styles.OutputStyle("Received image: " + images))
-		if images != "" {
-			encoded, err := encodeImageToBase64(images)
-			if err != nil {
-				log.Println(styles.OutputStyle("Failed to read image: " + err.Error()))
-				http.Error(w, "Failed to read image: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-			cfg.Msg[0].Images = append(cfg.Msg[0].Images, encoded)
-		}
-
-		resp, err := ollama.GetResponse(cfg)
-		if err != nil {
-			log.Println(styles.OutputStyle("Failed to get response from Ollama: " + err.Error()))
-			http.Error(w, "Failed to get response from Ollama: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := data{
-			Model:  cfg.Model,
-			Prompt: prompt,
-			Resp:   resp,
-		}
-
-		if err := t.ExecuteTemplate(w, "response.html", data); err != nil {
-			log.Println(styles.OutputStyle("Failed to render response template: " + err.Error()))
-			http.Error(w, "Failed to render response: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
+	router.HandleFunc("GET /", rootHandler)
+	router.HandleFunc("POST /set-model", setModelHandler)
+	router.HandleFunc("POST /chat", chatHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",
@@ -204,36 +204,26 @@ func getLocalModels() ([]string, error) {
 	return models, nil
 }
 
-func getDirContent(root string) (string, error) {
-	var sb strings.Builder
-	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.IsDir() {
-			content, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			sb.WriteString("File: " + filepath.Base(path) + "\n")
-			sb.Write(content)
-			sb.WriteString("\n")
-		}
-		return nil
-	})
-	return sb.String(), err
+func encodeImageToBase64(content []byte) string {
+	encoded := base64.StdEncoding.EncodeToString(content)
+	return encoded
 }
 
-func encodeImageToBase64(path string) (string, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return "", err
+func getDirContent(files []*multipart.FileHeader) (string, error) {
+	var builder strings.Builder
+	for _, fh := range files {
+		file, err := fh.Open()
+		if err != nil {
+			return "", err
+		}
+		content, err := io.ReadAll(file)
+		file.Close()
+		if err != nil {
+			return "", err
+		}
+		builder.WriteString(fmt.Sprintf("File: %s\n", fh.Filename))
+		builder.Write(content)
+		builder.WriteString("\n")
 	}
-	defer f.Close()
-	data, err := io.ReadAll(f)
-	if err != nil {
-		return "", err
-	}
-	encoded := base64.StdEncoding.EncodeToString(data)
-	return encoded, nil
+	return builder.String(), nil
 }

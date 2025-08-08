@@ -24,29 +24,17 @@
       </select>
     </form>
   </div>
-  <!-- Chat area fills available space -->
   <div
     class="flex-1 w-full max-w-none max-h-none bg-base-100 shadow-xl rounded-none p-0 m-0 flex flex-col overflow-hidden">
     <div name="chat-window" id="chat-window" class="flex-1 overflow-y-auto bg-base-300 rounded-none p-4">
       <!-- Chat messages will appear here -->
     </div>
-    <!-- File inputs grouped above prompt input -->
     <form enctype="multipart/form-data" id="prompt-form" hx-post="/chat" hx-target="#chat-window" hx-swap="beforeend"
       class="flex flex-col gap-2 border-t bg-base-100 w-full p-4">
-      <div class="flex flex-row gap-4 items-center mb-2 justify-center">
+      <div class="flex flex-row gap-4 items-center mb-2 justify-start">
         <label class="flex flex-col items-center cursor-pointer">
-          <span class="text-xs text-base-content mb-1">Image</span>
-          <input name="image" type="file" accept="image/*"
-            class="file-input file-input-bordered w-full max-w-xs border-2 border-primary focus:border-primary focus:ring-2 focus:ring-primary" />
-        </label>
-        <label class="flex flex-col items-center cursor-pointer">
-          <span class="text-xs text-base-content mb-1">Directory</span>
-          <input name="dir" type="file" webkitdirectory directory
-            class="file-input file-input-bordered w-full max-w-xs border-2 border-primary focus:border-primary focus:ring-2 focus:ring-primary" />
-        </label>
-        <label class="flex flex-col items-center cursor-pointer">
-          <span class="label-text">File</span>
-          <input type="file" name="file"
+          <span class="text-xs text-base-content mb-1">Files</span>
+          <input name="files" type="file" multiple
             class="file-input file-input-bordered w-full max-w-xs border-2 border-primary focus:border-primary focus:ring-2 focus:ring-primary" />
         </label>
       </div>
