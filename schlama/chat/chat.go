@@ -34,7 +34,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println(styles.OutputStyle("Starting chat..."))
 	cfg := config.ReadConfig()
 	data := data{
-		Model:   cfg.Model,
+		Model:   strings.ToUpper(cfg.Model),
 		Prompt:  "",
 		Resp:    "",
 		Message: "",
@@ -163,7 +163,7 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := data{
-		Model:  cfg.Model,
+		Model:  strings.ToUpper(cfg.Model),
 		Prompt: prompt,
 		Resp:   resp,
 	}
