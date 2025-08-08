@@ -38,10 +38,6 @@
             class="file-input file-input-bordered w-full max-w-xs border-2 border-primary focus:border-primary focus:ring-2 focus:ring-primary" />
         </label>
       </div>
-      <!-- Prompt input at the very bottom, full width -->
-      {{if .Message}}
-      <div class="text-xs text-warning mb-1 ml-1">{{.Message}}</div>
-      {{end}}
       <div class="flex flex-row gap-2 items-center">
         <input id="prompt" name="prompt" type="text" placeholder="Example: Explain gravity like I'm 5."
           class="input input-bordered flex-1 min-w-0 border-2 border-primary focus:border-primary focus:ring-2 focus:ring-primary" />

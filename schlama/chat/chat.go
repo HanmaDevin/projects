@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"os/exec"
@@ -102,24 +101,6 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	if prompt == "" {
 		log.Println(styles.OutputStyle("Prompt cannot be empty"))
 		http.Error(w, "Prompt cannot be empty", http.StatusBadRequest)
-		models, err := getLocalModels()
-		if err != nil {
-			log.Println(styles.ErrorStyle("Failed to get local models: " + err.Error()))
-			http.Error(w, "Failed to get local models: "+err.Error(), http.StatusInternalServerError)
-			t.ExecuteTemplate(w, "error.html", map[string]string{
-				"Message": "Something went wrong :(",
-			})
-			return
-		}
-
-		data := data{
-			Model:   cfg.Model,
-			Prompt:  "",
-			Resp:    "",
-			Message: "Prompt cannot be empty",
-			Options: models,
-		}
-		t.ExecuteTemplate(w, "index.html", data)
 		return
 	}
 	cfg.Msg[0].Content = prompt
@@ -257,23 +238,4 @@ func getLocalModels() ([]string, error) {
 func encodeImageToBase64(content []byte) string {
 	encoded := base64.StdEncoding.EncodeToString(content)
 	return encoded
-}
-
-func getDirContent(files []*multipart.FileHeader) (string, error) {
-	var builder strings.Builder
-	for _, fh := range files {
-		file, err := fh.Open()
-		if err != nil {
-			return "", err
-		}
-		content, err := io.ReadAll(file)
-		file.Close()
-		if err != nil {
-			return "", err
-		}
-		builder.WriteString(fmt.Sprintf("File: %s\n", fh.Filename))
-		builder.Write(content)
-		builder.WriteString("\n")
-	}
-	return builder.String(), nil
 }
