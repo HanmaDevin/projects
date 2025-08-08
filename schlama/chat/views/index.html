@@ -12,22 +12,28 @@
     crossorigin="anonymous"></script>
 </head>
 
-<body class="bg-base-200 min-h-screen min-w-screen h-screen w-screen flex items-center justify-center">
-  <form id="model-form">
-    <select id="models" name="model" hx-post="/set-model" hx-trigger="input changed" hx-swap="none" hx-target="this"
-      class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-base-200 bg-opacity-80 rounded-lg px-6 py-3 shadow-lg text-xl font-semibold text-center w-auto max-w-lg">
-      {{range .Options}}
-      <option value="{{.}}" {{if eq . $.Model}}selected{{end}}>{{.}}</option>
-      {{end}}
-    </select>
-  </form>
-  <div class="w-full h-full max-w-none max-h-none bg-base-100 shadow-xl rounded-none p-0 m-0 flex flex-col">
-    <div id="chat-window" class="flex-1 overflow-y-auto mb-0 bg-base-300 rounded-none p-4">
+<body class="bg-base-200 min-h-screen min-w-screen h-screen w-screen flex flex-col">
+  <!-- Dropdown at the very top, centered -->
+  <div class="w-full flex justify-center pt-4 pb-2">
+    <form id="model-form">
+      <select id="models" name="model" hx-post="/set-model" hx-trigger="input changed" hx-swap="none" hx-target="this"
+        class="bg-base-200 bg-opacity-80 rounded-lg px-6 py-3 shadow-lg text-xl font-semibold text-center w-auto max-w-lg">
+        {{range .Options}}
+        <option value="{{.}}" {{if eq . $.Model}}selected{{end}}>{{.}}</option>
+        {{end}}
+      </select>
+    </form>
+  </div>
+  <!-- Chat area fills available space -->
+  <div
+    class="flex-1 w-full max-w-none max-h-none bg-base-100 shadow-xl rounded-none p-0 m-0 flex flex-col overflow-hidden">
+    <div name="chat-window" id="chat-window" class="flex-1 overflow-y-auto bg-base-300 rounded-none p-4">
       <!-- Chat messages will appear here -->
     </div>
+    <!-- File inputs grouped above prompt input -->
     <form enctype="multipart/form-data" id="prompt-form" hx-post="/chat" hx-target="#chat-window" hx-swap="beforeend"
-      class="flex flex-col gap-2 p-4 border-t bg-base-100 w-full">
-      <div class="flex flex-col gap-2 sm:flex-row sm:gap-2 items-center mb-2">
+      class="flex flex-col gap-2 border-t bg-base-100 w-full p-4">
+      <div class="flex flex-row gap-4 items-center mb-2 justify-center">
         <label class="flex flex-col items-center cursor-pointer">
           <span class="text-xs text-base-content mb-1">Image</span>
           <input name="image" type="file" accept="image/*"
@@ -44,6 +50,7 @@
             class="file-input file-input-bordered w-full max-w-xs border-2 border-primary focus:border-primary focus:ring-2 focus:ring-primary" />
         </label>
       </div>
+      <!-- Prompt input at the very bottom, full width -->
       <div class="flex flex-row gap-2 items-center">
         <input name="prompt" type="text" placeholder="Explain gravity like I'm 5"
           class="input input-bordered flex-1 min-w-0 border-2 border-primary focus:border-primary focus:ring-2 focus:ring-primary" />

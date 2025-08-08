@@ -78,7 +78,6 @@ func Start() {
 		log.Println(styles.OutputStyle("Handling chat request..."))
 		if err := r.ParseMultipartForm(200 << 20); err != nil {
 			log.Println(styles.OutputStyle("Failed to parse form: " + err.Error()))
-			fmt.Println(styles.ErrorStyle("Failed to parse form: " + err.Error()))
 			http.Error(w, "Failed to parse form", http.StatusBadRequest)
 			return
 		}
@@ -92,19 +91,26 @@ func Start() {
 		}
 		cfg.Msg[0].Content = prompt
 
-		file := r.FormValue("file")
-		if file != "" {
-			data, err := os.ReadFile(file)
+		file, fileHeader, err := r.FormFile("file")
+		if err != nil && err != http.ErrMissingFile {
+			return
+		}
+		if err == nil {
+			defer file.Close()
+			log.Println(styles.OutputStyle("Received file: " + fileHeader.Filename))
+			content, err := io.ReadAll(file)
 			if err != nil {
 				log.Println(styles.OutputStyle("Failed to read file: " + err.Error()))
 				http.Error(w, "Failed to read file: "+err.Error(), http.StatusInternalServerError)
 				return
 			}
-
-			cfg.Msg[0].Content += "\n" + string(data)
+			cfg.Msg[0].Content += "\n" + string(content)
+		} else if err == http.ErrMissingFile {
+			log.Println(styles.OutputStyle("No file uploaded"))
 		}
 
 		dir := r.FormValue("dir")
+		log.Println(styles.OutputStyle("Received directory: " + dir))
 		if dir != "" {
 			content, err := getDirContent(dir)
 			if err != nil {
@@ -116,6 +122,7 @@ func Start() {
 		}
 
 		images := r.FormValue("images")
+		log.Println(styles.OutputStyle("Received image: " + images))
 		if images != "" {
 			encoded, err := encodeImageToBase64(images)
 			if err != nil {
@@ -127,14 +134,19 @@ func Start() {
 		}
 
 		resp, err := ollama.GetResponse(cfg)
-		fmt.Println(styles.HintStyle(resp))
 		if err != nil {
 			log.Println(styles.OutputStyle("Failed to get response from Ollama: " + err.Error()))
 			http.Error(w, "Failed to get response from Ollama: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if err := t.ExecuteTemplate(w, "response.html", resp); err != nil {
+		data := data{
+			Model:  cfg.Model,
+			Prompt: prompt,
+			Resp:   resp,
+		}
+
+		if err := t.ExecuteTemplate(w, "response.html", data); err != nil {
 			log.Println(styles.OutputStyle("Failed to render response template: " + err.Error()))
 			http.Error(w, "Failed to render response: "+err.Error(), http.StatusInternalServerError)
 			return
